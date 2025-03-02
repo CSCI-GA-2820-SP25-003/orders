@@ -6,6 +6,7 @@ All of the models are stored in this module
 
 import logging
 from flask_sqlalchemy import SQLAlchemy
+from datetime import datetime
 
 logger = logging.getLogger("flask.app")
 
@@ -17,7 +18,7 @@ class DataValidationError(Exception):
     """Used for an data validation errors when deserializing"""
 
 
-class YourResourceModel(db.Model):
+class Order(db.Model):
     """
     Class that represents a YourResourceModel
     """
@@ -26,18 +27,22 @@ class YourResourceModel(db.Model):
     # Table Schema
     ##################################################
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(63))
+    customer_name = db.Column(db.String(255), nullable=False)
+    product = db.Column(db.String(255), nullable=False)
+    quantity = db.Column(db.Integer, nullable=False)
+    price = db.Column(db.Numeric(10, 2), nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
 
     # Todo: Place the rest of your schema here...
 
     def __repr__(self):
-        return f"<YourResourceModel {self.name} id=[{self.id}]>"
+        return f"<Order {self.customer_name} - product {self.product} id=[{self.id}]>"
 
     def create(self):
         """
         Creates a YourResourceModel to the database
         """
-        logger.info("Creating %s", self.name)
+        logger.info("Creating %s with customer name %s", self.id, self.customer_name)
         self.id = None  # pylint: disable=invalid-name
         try:
             db.session.add(self)
@@ -51,7 +56,7 @@ class YourResourceModel(db.Model):
         """
         Updates a YourResourceModel to the database
         """
-        logger.info("Saving %s", self.name)
+        logger.info("Saving %s", self.customer_name)
         try:
             db.session.commit()
         except Exception as e:
@@ -61,7 +66,7 @@ class YourResourceModel(db.Model):
 
     def delete(self):
         """Removes a YourResourceModel from the data store"""
-        logger.info("Deleting %s", self.name)
+        logger.info("Deleting %s", self.customer_name)
         try:
             db.session.delete(self)
             db.session.commit()
@@ -72,7 +77,7 @@ class YourResourceModel(db.Model):
 
     def serialize(self):
         """Serializes a YourResourceModel into a dictionary"""
-        return {"id": self.id, "name": self.name}
+        return {"id": self.id, "name": self.customer_name}
 
     def deserialize(self, data):
         """
@@ -82,7 +87,10 @@ class YourResourceModel(db.Model):
             data (dict): A dictionary containing the resource data
         """
         try:
-            self.name = data["name"]
+            self.customer_name = data["customer_name"]
+            self.product = data["product"]
+            self.quantity = int(data["quantity"])
+            self.price = float(data["price"])
         except AttributeError as error:
             raise DataValidationError("Invalid attribute: " + error.args[0]) from error
         except KeyError as error:
@@ -113,11 +121,11 @@ class YourResourceModel(db.Model):
         return cls.query.session.get(cls, by_id)
 
     @classmethod
-    def find_by_name(cls, name):
+    def find_by_name(cls, customer_name):
         """Returns all YourResourceModels with the given name
 
         Args:
             name (string): the name of the YourResourceModels you want to match
         """
-        logger.info("Processing name query for %s ...", name)
-        return cls.query.filter(cls.name == name)
+        logger.info("Processing name query for %s ...", customer_name)
+        return cls.query.filter(cls.customer_name == customer_name)

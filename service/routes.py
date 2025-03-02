@@ -23,9 +23,13 @@ and Delete YourResourceModel
 
 from flask import jsonify, request, url_for, abort
 from flask import current_app as app  # Import Flask application
-from service.models import YourResourceModel
+from service.models import db, Order
 from service.common import status  # HTTP Status Codes
+from flask import Flask
 
+app = Flask(__name__)
+app.config.from_object("config")
+db.init_app(app)
 
 ######################################################################
 # GET INDEX
@@ -44,3 +48,19 @@ def index():
 ######################################################################
 
 # Todo: Place your REST API code here ...
+
+
+@app.route("/orders", methods=["POST"])
+def create():
+    """create an order"""
+    app.logger.info("Request to create %s order",)
+    data = request.get_json()
+    if not data:
+        return jsonify(error="No input data provided"), status.HTTP_400_BAD_REQUEST
+    
+
+    order = Order.deserialize(data)
+    order.create()
+    return jsonify(order.serialize()), status.HTTP_201_CREATED
+        
+    
