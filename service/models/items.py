@@ -1,5 +1,5 @@
 import logging
-from .models import db, PersistentBase, DataValidationError
+from .persistent_base import db, PersistentBase, DataValidationError
 
 logger = logging.getLogger("flask.app")
 
@@ -12,15 +12,13 @@ class Item(db.Model, PersistentBase):
 
     # table fields
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(128), nullable=False)
-    description = db.Column(db.String(256))
-    price = db.Column(db.Float, nullable=False)
-    # remaining
-    stock = db.Column(db.Integer, nullable=False, default=0)
     # which order contains this item
     order_id = db.Column(
         db.Integer, db.ForeignKey("order.id", ondelete="CASCADE"), nullable=True
     )
+    name = db.Column(db.String(128), nullable=False)
+    price = db.Column(db.Float, nullable=False)
+    quantity = db.Column(db.Integer, nullable=False, default=0)
 
     def __repr__(self):
         return f"<Item {self.name} id=[{self.id}] price={self.price}>"

@@ -15,7 +15,7 @@
 ######################################################################
 
 """
-TestYourResourceModel API Service Test Suite
+Test cases for Pet Model
 """
 
 # pylint: disable=duplicate-code
@@ -23,8 +23,8 @@ import os
 import logging
 from unittest import TestCase
 from wsgi import app
-from service.common import status
-from service.models import db, Item, Order
+from service.models import Item, Order, DataValidationError, db
+from .factories import OrderFactory, ItemFactory
 
 DATABASE_URI = os.getenv(
     "DATABASE_URI", "postgresql+psycopg://postgres:postgres@localhost:5432/testdb"
@@ -32,30 +32,28 @@ DATABASE_URI = os.getenv(
 
 
 ######################################################################
-#  T E S T   C A S E S
+#  YourResourceModel   M O D E L   T E S T   C A S E S
 ######################################################################
 # pylint: disable=too-many-public-methods
-class TestYourResourceService(TestCase):
-    """REST API Server Tests"""
+class TestItemModel(TestCase):
+    """Test Cases for YourResourceModel Model"""
 
     @classmethod
     def setUpClass(cls):
-        """Run once before all tests"""
+        """This runs once before the entire test suite"""
         app.config["TESTING"] = True
         app.config["DEBUG"] = False
-        # Set up the test database
         app.config["SQLALCHEMY_DATABASE_URI"] = DATABASE_URI
         app.logger.setLevel(logging.CRITICAL)
         app.app_context().push()
 
     @classmethod
     def tearDownClass(cls):
-        """Run once after all tests"""
+        """This runs once after the entire test suite"""
         db.session.close()
 
     def setUp(self):
-        """Runs before each test"""
-        self.client = app.test_client()
+        """This runs before each test"""
         db.session.query(Order).delete()  # clean up the last tests
         db.session.commit()
 
@@ -64,12 +62,37 @@ class TestYourResourceService(TestCase):
         db.session.remove()
 
     ######################################################################
-    #  P L A C E   T E S T   C A S E S   H E R E
+    #  T E S T   C A S E S  F O R   I T E M S
     ######################################################################
 
-    def test_index(self):
-        """It should call the home page"""
-        resp = self.client.get("/")
-        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+    def test_create_item(self):
+        """Create an Order with an Item and add it to database"""
+        # Get the list of all orders, should be []
+        orders = Order.all()
+        self.assertEqual(orders, [])
 
-    # Todo: Add your test cases here...
+        # Create a dummy order and item corresponding to the order
+        order = OrderFactory()
+        item = ItemFactory(order=order)
+        order.items.append(item)
+        # make the order persist in the db
+        order.create()
+
+        # Check if order is in the db
+        self.assertIsNotNone(order.id)
+        orders = Order.all()
+        self.assertEqual(len(orders), 1)
+
+        # find order by id and assert
+        new_order = Order.find(order.id)
+        self.assertEqual(new_order.items[0].name, item.name)
+
+        # create new item corresponding to same order
+        item2 = ItemFactory(order=order)
+        order.items.append(item2)
+        order.update()
+
+        # check if length of the list is 2
+        new_order = Order.find(order.id)
+        self.assertEqual(len(new_order.items), 2)
+        self.assertEqual(new_order.items[1].name, item2.name)

@@ -23,7 +23,7 @@ and Delete YourResourceModel
 
 from flask import jsonify, request, url_for, abort
 from flask import current_app as app  # Import Flask application
-from service.model import Item, Order
+from service.models import Item, Order
 from service.common import status  # HTTP Status Codes
 
 
@@ -43,13 +43,11 @@ def health_check():
 def index():
     """Root URL response"""
     response_data = {
-
         "name": "Welcome to Orders Service",
         "version": "1.0.0",
         "list_resource_url": url_for("list_orders"),
     }
     return jsonify(response_data), status.HTTP_200_OK
-
 
 
 ######################################################################
@@ -81,6 +79,15 @@ def list_orders():
     results = [order.serialize() for order in orders]
 
     return jsonify(results), status.HTTP_200_OK
+
+
+# @app.route("/orders")
+# def list_orders():
+#     """Returns all of the Orders"""
+#     app.logger.info("Request for Order list")
+#     orders = []
+
+#     return jsonify(orders), status.HTTP_200_OK
 
 
 ######################################################################
@@ -272,7 +279,6 @@ def get_item(order_id, item_id):
         )
 
     return jsonify(item.serialize()), status.HTTP_200_OK
-
 
 
 ######################################################################

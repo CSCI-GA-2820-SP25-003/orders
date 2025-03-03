@@ -23,8 +23,8 @@ import os
 import logging
 from unittest import TestCase
 from wsgi import app
-from service.models import YourResourceModel, DataValidationError, db
-from .factories import YourResourceModelFactory
+from service.models import Item, Order, DataValidationError, db
+from .factories import OrderFactory
 
 DATABASE_URI = os.getenv(
     "DATABASE_URI", "postgresql+psycopg://postgres:postgres@localhost:5432/testdb"
@@ -35,7 +35,7 @@ DATABASE_URI = os.getenv(
 #  YourResourceModel   M O D E L   T E S T   C A S E S
 ######################################################################
 # pylint: disable=too-many-public-methods
-class TestYourResourceModel(TestCase):
+class TestOrderModel(TestCase):
     """Test Cases for YourResourceModel Model"""
 
     @classmethod
@@ -54,7 +54,7 @@ class TestYourResourceModel(TestCase):
 
     def setUp(self):
         """This runs before each test"""
-        db.session.query(YourResourceModel).delete()  # clean up the last tests
+        db.session.query(Order).delete()  # clean up the last tests
         db.session.commit()
 
     def tearDown(self):
@@ -62,18 +62,27 @@ class TestYourResourceModel(TestCase):
         db.session.remove()
 
     ######################################################################
-    #  T E S T   C A S E S
+    #  T E S T   C A S E S  F O R   O R D E R S
     ######################################################################
 
-    def test_example_replace_this(self):
-        """It should create a YourResourceModel"""
-        # Todo: Remove this test case example
-        resource = YourResourceModelFactory()
-        resource.create()
-        self.assertIsNotNone(resource.id)
-        found = YourResourceModel.all()
-        self.assertEqual(len(found), 1)
-        data = YourResourceModel.find(resource.id)
-        self.assertEqual(data.name, resource.name)
+    def test_create_order(self):
+        """It should create an Order"""
+        faker = OrderFactory()
 
-    # Todo: Add your test cases here...
+        order = Order(
+            id=faker.id,
+            customer_name=faker.customer_name,
+            status=faker.status,
+            created_at=faker.created_at.isoformat(),
+            updated_at=faker.updated_at.isoformat(),
+            items=faker.items,
+        )
+
+        # assert the order
+        self.assertIsNotNone(order)
+        self.assertEqual(order.id, faker.id)
+        self.assertEqual(order.customer_name, faker.customer_name)
+        self.assertEqual(order.status, faker.status)
+        self.assertEqual(order.created_at, faker.created_at.strftime("%Y-%m-%d"))
+        self.assertEqual(order.updated_at, faker.updated_at.strftime("%Y-%m-%d"))
+        self.assertEqual(len(order.items), len(faker.items))
