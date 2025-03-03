@@ -1,9 +1,27 @@
 import logging
-from datetime import datetime
-from .models import db, PersistentBase, DataValidationError
+from datetime import datetime, timezone
+from .persistent_base import db, PersistentBase, DataValidationError
 from .items import Item
+from enum import Enum
 
 logger = logging.getLogger("flask.app")
+
+
+# Define the order status to be used
+class OrderStatus(Enum):
+    """Enum for valid order status"""
+
+    PENDING = "PENDING"
+    CREATED = "CREATED"
+    IN_PROGRESS = "IN_PROGRESS"
+    SHIPPED = "SHIPPED"
+    COMPLETED = "COMPLETED"
+    CANCELLED = "CANCELLED"
+
+    @staticmethod
+    def list():
+        """Lists different order statuses"""
+        return list(map(lambda s: s.value, OrderStatus))
 
 
 class Order(db.Model, PersistentBase):
@@ -15,8 +33,18 @@ class Order(db.Model, PersistentBase):
     id = db.Column(db.Integer, primary_key=True)
     customer_name = db.Column(db.String(64), nullable=False)
     # like pending, shipped, completed
-    status = db.Column(db.String(32), nullable=False, default="pending")
-    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    status = db.Column(
+        db.Enum(OrderStatus), nullable=False, default=OrderStatus.PENDING
+    )
+    created_at = db.Column(
+        db.DateTime, default=lambda: datetime.now(timezone.utc), nullable=False
+    )
+    updated_at = db.Column(
+        db.DateTime,
+        default=lambda: datetime.now(timezone.utc),
+        onupdate=lambda: datetime.now(timezone.utc),
+        nullable=False,
+    )
     items = db.relationship("Item", backref="order", passive_deletes=True)
 
     def __repr__(self):
