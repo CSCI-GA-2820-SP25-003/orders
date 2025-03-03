@@ -43,11 +43,13 @@ def health_check():
 def index():
     """Root URL response"""
     response_data = {
+
         "name": "Welcome to Orders Service",
         "version": "1.0.0",
         "list_resource_url": url_for("list_orders"),
     }
     return jsonify(response_data), status.HTTP_200_OK
+
 
 
 ######################################################################
@@ -270,6 +272,7 @@ def get_item(order_id, item_id):
         )
 
     return jsonify(item.serialize()), status.HTTP_200_OK
+
 
 
 ######################################################################
