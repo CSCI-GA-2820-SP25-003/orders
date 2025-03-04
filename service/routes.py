@@ -55,11 +55,10 @@ def index():
 ######################################################################
 
 
-######################################################################
-# LIST ALL ORDERS
-######################################################################
-
-# curl -X GET "http://127.0.0.1:8080/orders"
+######### L I S T   A L L   O R D E R S #########
+"""
+curl -X GET "http://127.0.0.1:8080/orders"
+"""
 
 
 @app.route("/orders", methods=["GET"])
@@ -81,22 +80,12 @@ def list_orders():
     return jsonify(results), status.HTTP_200_OK
 
 
-# @app.route("/orders")
-# def list_orders():
-#     """Returns all of the Orders"""
-#     app.logger.info("Request for Order list")
-#     orders = []
-
-#     return jsonify(orders), status.HTTP_200_OK
-
-
-######################################################################
-# CREATE A NEW ORDER
-######################################################################
-
-# curl -X POST "http://127.0.0.1:8080/orders" \
-#      -H "Content-Type: application/json" \
-#      -d '{"customer_name": "Alice", "status": "PENDING"}'
+######### C R E A T E   A   N E W   O R D E R #########
+"""
+curl -X POST "http://127.0.0.1:8080/orders" \
+-H "Content-Type: application/json" \
+-d '{"customer_name": "Alice", "status": "PENDING"}'
+"""
 
 
 @app.route("/orders", methods=["POST"])
@@ -120,11 +109,10 @@ def create_order():
     return jsonify(message), status.HTTP_201_CREATED, {"location": location_url}
 
 
-######################################################################
-# RETRIEVE AN ORDER
-######################################################################
-
-# curl -X GET "http://127.0.0.1:8080/orders/1"
+######### R E T R E I V E   A N     O R D E R   U S I N G   O R D E R   I D #########
+"""
+curl -X GET "http://127.0.0.1:8080/orders/1"
+"""
 
 
 @app.route("/orders/<int:order_id>", methods=["GET"])
@@ -141,13 +129,12 @@ def get_order(order_id):
     return jsonify(order.serialize()), status.HTTP_200_OK
 
 
-######################################################################
-# UPDATE AN EXISTING ORDER
-######################################################################
-
-# curl -X PUT "http://127.0.0.1:8080/orders/1" \
-#  -H "Content-Type: application/json" \
-#  -d '{"customer_name": "Alice", "status": "shipped"}'
+# U P D A T E   A N    E X I S T I N G   O R D E R    U S I N G      O R D E R   I D #
+"""
+curl -X PUT "http://127.0.0.1:8080/orders/1" \
+    -H "Content-Type: application/json" \
+    -d '{"customer_name": "Alice", "status": "shipped"}'
+"""
 
 
 @app.route("/orders/<int:order_id>", methods=["PUT"])
@@ -173,9 +160,7 @@ def update_order(order_id):
     return jsonify(order.serialize()), status.HTTP_200_OK
 
 
-########### DELETE AN EXISTING ORDER USING AN ORDER ID #############
-
-
+######### D E L E T E   A N     O R D E R    U S I N G      O R D E R   I D #########
 @app.route("/orders/<int:order_id>", methods=["DELETE"])
 def delete_order(order_id):
     """Delete order using the order id"""
@@ -198,13 +183,8 @@ def delete_order(order_id):
 ######################################################################
 
 
-######################################################################
-# LIST ITEMS
-######################################################################
-
+#########   L I S T     I T E M S     F R O M     A N   E X I S T I N G     O R D E R   #########
 # curl -X GET "http://127.0.0.1:8080/orders/1/items"
-
-
 @app.route("/orders/<int:order_id>/items", methods=["GET"])
 def list_items_with_order_id(order_id):
     """Returns all of the Items for an Order"""
@@ -223,20 +203,16 @@ def list_items_with_order_id(order_id):
     return jsonify(results), status.HTTP_200_OK
 
 
-######################################################################
-# ADD AN ITEM TO AN ORDER
-######################################################################
-
+#   A D D     A N     I T E M     T O   A N     A N     E X I S T I N G     O R D E R   ##
 """
-
-    curl -X POST "http://127.0.0.1:8080/orders1/items" \
-     -H "Content-Type: application/json" \
-    -d '{
-          "name": "Laptop",
-          "description": "Gaming laptop",
-           "price": 1200.99,
-           "stock": 10
-          }'
+curl -X POST "http://127.0.0.1:8080/orders1/items" \
+-H "Content-Type: application/json" \
+-d '{
+    "name": "Laptop",
+    "description": "Gaming laptop",
+    "price": 1200.99,
+    "stock": 10
+    }'
 """
 
 
@@ -276,11 +252,10 @@ def create_item(order_id):
     return jsonify(message), status.HTTP_201_CREATED, {"Location": location_url}
 
 
-######################################################################
-# RETRIEVE AN ITEM FROM ORDER
-######################################################################
-
-# curl -X GET "http://127.0.0.1:8080/orders/1/items/1"
+#########  R E T R E I V E    A N     I T E M     F R O M     A N      E X I S T I N G     O R D E R   #########
+"""
+curl -X GET "http://127.0.0.1:8080/orders/1/items/1"
+"""
 
 
 @app.route("/orders/<int:order_id>/items/<int:item_id>", methods=["GET"])
@@ -303,11 +278,7 @@ def get_item(order_id, item_id):
     return jsonify(item.serialize()), status.HTTP_200_OK
 
 
-######################################################################
-# UPDATE AN ITEM
-######################################################################
-
-
+##########   U P D A T E     A N     I T E M     F R O M     A N     E X I S T I N G     O R D E R   #########
 # something worng here, when I try to update an item, it delete the item
 # @app.route("/orders/<int:order_id>/items/<int:item_id>", methods=["PUT"])
 # def update_item(order_id, item_id):
@@ -335,7 +306,7 @@ def get_item(order_id, item_id):
 #     return jsonify(item.serialize()), 200
 
 
-#   D E L E T E     A N     I T E M     F R O M     A N E X I S T I N G     O R D E R   #
+#########   D E L E T E     A N     I T E M     F R O M     A N     E X I S T I N G     O R D E R   #########
 @app.route("/orders/<int:order_id>/items/<int:item_id>", methods=["DELETE"])
 def delete_item_from_order(order_id, item_id):
     """Delete an item from a given order"""
