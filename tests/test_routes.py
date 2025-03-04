@@ -93,6 +93,109 @@ class TestYourResourceService(TestCase):
         resp = self.client.get("/")
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
 
+    def test_health(self):
+        """It should call the health endpoint"""
+        resp = self.client.get("/health")
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+
+    ################ TEST CASES FOR CREATING ORDERS ########################
+    def test_create_order(self):
+        """It should Create an Order"""
+        order = OrderFactory()
+        response = self.client.post(
+            "/orders", json=order.serialize(), content_type="application/json"
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        json = response.get_json()
+        self.assertEqual(json["customer_name"], order.customer_name)
+        self.assertEqual(json["status"], order.status.name)
+
+    def test_create_order_with_invalid_data(self):
+        """It should not Create an Order with invalid data"""
+        invalid_order = {"customer_name": "", "status": "INVALID"}
+        response = self.client.post(
+            "/orders", json=invalid_order, content_type="application/json"
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_create_order_with_missing_data(self):
+        """It should not Create an Order with missing customer_name"""
+        missing_data_order = {"status": "INVALID"}
+        response = self.client.post(
+            "/orders", json=missing_data_order, content_type="application/json"
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_create_order_with_extra_data(self):
+        """It should Create an Order with extra data"""
+        order = OrderFactory()
+        extra_data_order = order.serialize()
+        extra_data_order["extra_field"] = "extra_value"
+        response = self.client.post(
+            "/orders", json=extra_data_order, content_type="application/json"
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        json = response.get_json()
+        self.assertNotIn("extra_field", json)
+        self.assertEqual(json["customer_name"], order.customer_name)
+        self.assertEqual(json["status"], order.status.name)
+
+    ################ TEST CASES FOR CREATING ITEMS ########################
+    def test_create_item(self):
+        """It should Create an Item for an Order"""
+        order = self._create_orders(1)[0]
+        item = ItemFactory()
+        response = self.client.post(
+            f"/orders/{order.id}/items",
+            json=item.serialize(),
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        json = response.get_json()
+        self.assertEqual(json["name"], item.name)
+        self.assertEqual(json["price"], item.price)
+        self.assertEqual(json["quantity"], item.quantity)
+
+    def test_create_item_with_invalid_data(self):
+        """It should not Create an Item with invalid data"""
+        order = self._create_orders(1)[0]
+        invalid_item = {"name": "", "price": -1, "stock": -1}
+        response = self.client.post(
+            f"/orders/{order.id}/items",
+            json=invalid_item,
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_create_item_with_missing_data(self):
+        """It should not Create an Item with missing data"""
+        order = self._create_orders(1)[0]
+        missing_data_item = {"price": 10.0, "stock": 5}
+        response = self.client.post(
+            f"/orders/{order.id}/items",
+            json=missing_data_item,
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_create_item_with_extra_data(self):
+        """It should Create an Item with extra data"""
+        order = self._create_orders(1)[0]
+        item = ItemFactory()
+        extra_data_item = item.serialize()
+        extra_data_item["extra_field"] = "extra_value"
+        response = self.client.post(
+            f"/orders/{order.id}/items",
+            json=extra_data_item,
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        json = response.get_json()
+        self.assertNotIn("extra_field", json)
+        self.assertEqual(json["name"], item.name)
+        self.assertEqual(json["price"], item.price)
+        self.assertEqual(json["quantity"], item.quantity)
+
     ################ TEST CASES FOR DELETING ORDERS ########################
     def test_delete_order(self):
         """Delete an order based on its order id"""
