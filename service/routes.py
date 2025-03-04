@@ -79,14 +79,19 @@ def list_orders():
 
     return jsonify(results), status.HTTP_200_OK
 
+    # @app.route("/orders")
+    # def list_orders():
+    #     """Returns all of the Orders"""
+    #     app.logger.info("Request for Order list")
+    #     orders = []
 
+    
 ######### C R E A T E   A   N E W   O R D E R #########
 """
 curl -X POST "http://127.0.0.1:8080/orders" \
 -H "Content-Type: application/json" \
 -d '{"customer_name": "Alice", "status": "PENDING"}'
 """
-
 
 @app.route("/orders", methods=["POST"])
 def create_order():
@@ -135,7 +140,6 @@ curl -X PUT "http://127.0.0.1:8080/orders/1" \
     -H "Content-Type: application/json" \
     -d '{"customer_name": "Alice", "status": "shipped"}'
 """
-
 
 @app.route("/orders/<int:order_id>", methods=["PUT"])
 def update_order(order_id):
@@ -205,7 +209,7 @@ def list_items_with_order_id(order_id):
 
 #   A D D     A N     I T E M     T O   A N     A N     E X I S T I N G     O R D E R   ##
 """
-curl -X POST "http://127.0.0.1:8080/orders1/items" \
+curl -X POST "http://127.0.0.1:8080/orders/1/items" \
 -H "Content-Type: application/json" \
 -d '{
     "name": "Laptop",
@@ -214,7 +218,6 @@ curl -X POST "http://127.0.0.1:8080/orders1/items" \
     "stock": 10
     }'
 """
-
 
 @app.route("/orders/<int:order_id>/items", methods=["POST"])
 def create_item(order_id):
@@ -257,7 +260,6 @@ def create_item(order_id):
 curl -X GET "http://127.0.0.1:8080/orders/1/items/1"
 """
 
-
 @app.route("/orders/<int:order_id>/items/<int:item_id>", methods=["GET"])
 def get_item(order_id, item_id):
     """
@@ -278,32 +280,49 @@ def get_item(order_id, item_id):
     return jsonify(item.serialize()), status.HTTP_200_OK
 
 
+
 ##########   U P D A T E     A N     I T E M     F R O M     A N     E X I S T I N G     O R D E R   #########
-# something worng here, when I try to update an item, it delete the item
-# @app.route("/orders/<int:order_id>/items/<int:item_id>", methods=["PUT"])
-# def update_item(order_id, item_id):
-#     """
-#     Update an Item in an Order
+"""
+curl -X PUT "http://127.0.0.1:8080/orders/1/items/2" \
+     -H "Content-Type: application/json" \
+     -d '{
+           "name": "Updated Laptop",
+           "price": 999.99,
+           "quantity": 5
+         }'
+"""
 
-#     This endpoint will update an Item based on the body that is posted
-#     """
-#     app.logger.info("Request to update Item %s for Order id: %s", item_id, order_id)
-#     check_content_type("application/json")
+@app.route("/orders/<int:order_id>/items/<int:item_id>", methods=["PUT"])
+def update_item(order_id, item_id):
+    """
+    Update an Item in an Order
 
-#     # See if the item exists and abort if it doesn't
-#     item = Item.find(item_id)
-#     if not item or item.order_id != order_id:
-#         abort(
-#             404, f"Item with id '{item_id}' in Order '{order_id}' could not be found."
-#         )
+    This endpoint will update an Item based on the body that is posted
+    """
+    app.logger.info("Request to update Item %s for Order id: %s", item_id, order_id)
+    check_content_type("application/json")
 
-#     # Update from the json in the body of the request
-#     item.deserialize(request.get_json())
-#     item.id = item_id
-#     item.update()
-#
+    order = Order.find(order_id)
+    if not order:
+        abort(
+            status.HTTP_404_NOT_FOUND, f"Order with id '{order_id}' could not be found."
+        )
 
-#     return jsonify(item.serialize()), 200
+    item = Item.find(item_id)
+    if not item or item.order_id != order_id:
+        abort(
+            status.HTTP_404_NOT_FOUND,
+            f"Item with id '{item_id}' in Order '{order_id}' could not be found.",
+        )
+
+    item.deserialize(request.get_json())
+
+    item.id = item_id
+    item.order_id = order_id
+
+    item.update()
+
+    return jsonify(item.serialize()), status.HTTP_200_OK
 
 
 #########   D E L E T E     A N     I T E M     F R O M     A N     E X I S T I N G     O R D E R   #########

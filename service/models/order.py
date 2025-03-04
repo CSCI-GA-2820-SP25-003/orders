@@ -96,12 +96,10 @@ class Order(db.Model, PersistentBase):
 
         except KeyError as error:
             raise DataValidationError(
-                "Invalid Order: missing " + error.args[0]
+                f"Invalid Order: missing {error.args[0]}"
             ) from error
-        except TypeError as error:
-            raise DataValidationError(
-                "Invalid Order: incorrect data type " + str(error)
-            ) from error
+        except (TypeError, ValueError) as error:
+            raise DataValidationError(f"Invalid Order: {str(error)}") from error
 
         return self
 
