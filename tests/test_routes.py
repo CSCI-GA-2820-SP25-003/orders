@@ -119,6 +119,53 @@ class TestYourResourceService(TestCase):
         resp = self.client.delete("/orders/0")
         self.assertEqual(resp.status_code, status.HTTP_404_NOT_FOUND)
 
+    ################ TEST CASES FOR UPDATE ORDERS ########################
+
+    def test_update_order(self):
+        """It should update an existing order"""
+        # create an order to update
+        order = self._create_orders(1)[0]
+
+        # update the order
+        data = order.serialize()
+        data["customer_name"] = "Updated Customer"
+        data["status"] = "SHIPPED"
+
+        # send the update request, update the order
+        resp = self.client.put(
+            f"/orders/{order.id}", json=data, content_type="application/json"
+        )
+
+        # assert that the update was successful
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+
+        # check if the data was actually updated
+        updated_order = resp.get_json()
+        self.assertEqual(updated_order["customer_name"], "Updated Customer")
+        self.assertEqual(updated_order["status"], "SHIPPED")
+
+        # verify through a GET request to test whether the updated version is in db now
+        resp = self.client.get(f"/orders/{order.id}")
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+
+        get_order = resp.get_json()
+        self.assertEqual(get_order["customer_name"], "Updated Customer")
+        self.assertEqual(get_order["status"], "SHIPPED")
+
+    def test_update_order_not_found(self):
+        """It should return 404 when updating a non-existing order"""
+        # create an order object but don't persist it (just for the data)
+        # we need to work on the factories.py to get fuzzy objects in test cases
+        order = OrderFactory()
+
+        # try to update an order that doesn't exist (use id 0 which shouldn't exist since the sql starts from 1)
+        resp = self.client.put(
+            "/orders/0", json=order.serialize(), content_type="application/json"
+        )
+
+        # assert that update attempt returned NOT FOUND
+        self.assertEqual(resp.status_code, status.HTTP_404_NOT_FOUND)
+
     ################ TEST CASES FOR DELETING ITEM ########################
     def test_delete_item(self):
         """Delete items from the order based on the order id"""
@@ -174,4 +221,167 @@ class TestYourResourceService(TestCase):
 
         # try to delete an item from the order
         response = self.client.delete(f"/orders/{order.id}/items/0")
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    ################ TEST CASES FOR UPDATE ITEMS ########################
+
+    def test_update_item_existing_order_existing_item(self):
+        """It should update an item with existing order id and existing item id"""
+        # create an order
+        order = self._create_orders(1)[0]
+
+        # create an item for the order
+        item = ItemFactory()
+        response = self.client.post(
+            f"/orders/{order.id}/items",
+            json=item.serialize(),
+            content_type="application/json",
+        )
+        # created item should return 201
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        # get the created item's id
+        item_data = response.get_json()
+        item_id = item_data["id"]
+
+        # update the item data
+        update_data = item_data.copy()
+        update_data["name"] = "Updated Item Name"
+        update_data["price"] = 99.99
+        update_data["quantity"] = 10
+
+        # dend update request to update the item
+        response = self.client.put(
+            f"/orders/{order.id}/items/{item_id}",
+            json=update_data,
+            content_type="application/json",
+        )
+
+        # assert the update was successful
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        # verify the response data contains updated values
+        updated_item = response.get_json()
+        self.assertEqual(updated_item["name"], "Updated Item Name")
+        self.assertEqual(updated_item["price"], 99.99)
+        self.assertEqual(updated_item["quantity"], 10)
+
+        # verify through a GET request to check if the updated version is in db now
+        response = self.client.get(f"/orders/{order.id}/items/{item_id}")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        get_item = response.get_json()
+        self.assertEqual(get_item["name"], "Updated Item Name")
+        self.assertEqual(get_item["price"], 99.99)
+        self.assertEqual(get_item["quantity"], 10)
+
+    def test_update_item_nonexisting_order_existing_item(self):
+        """It should return 404 when updating an item with non-existing order id"""
+        # create an order and item
+        order = self._create_orders(1)[0]
+
+        # create an item for the order
+        item = ItemFactory()
+        response = self.client.post(
+            f"/orders/{order.id}/items",
+            json=item.serialize(),
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        # get the created item's id
+        item_data = response.get_json()
+        item_id = item_data["id"]
+
+        # try to update the item with a non-existing order id
+        # assuming 0 is not a valid order id since the sql starts from 1
+        non_existing_order_id = 0
+
+        response = self.client.put(
+            f"/orders/{non_existing_order_id}/items/{item_id}",
+            json=item_data,
+            content_type="application/json",
+        )
+
+        # assert that the update attempt returns 404
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_update_item_existing_order_nonexisting_item(self):
+        """It should return 404 when updating a non-existing item for an existing order"""
+        # create an order
+        order = self._create_orders(1)[0]
+
+        # create fake item data
+        item = ItemFactory()
+
+        # try to update a non-existing item
+        # assuming 0 is not a valid item id since the sql starts from 1
+        non_existing_item_id = 0
+
+        response = self.client.put(
+            f"/orders/{order.id}/items/{non_existing_item_id}",
+            json=item.serialize(),
+            content_type="application/json",
+        )
+
+        # assert that the update attempt returns 404
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_update_item_nonexisting_order_nonexisting_item(self):
+        """It should return 404 when updating with both non-existing order and item ids"""
+        # create fake item data
+        item = ItemFactory()
+
+        # try to update with non-existing order and item ids
+        # assuming 0 is not a valid order id since the sql starts from 1
+        non_existing_order_id = 0
+        non_existing_item_id = 0
+
+        response = self.client.put(
+            f"/orders/{non_existing_order_id}/items/{non_existing_item_id}",
+            json=item.serialize(),
+            content_type="application/json",
+        )
+
+        # assert that the update attempt returns 404
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_update_item_wrong_order_item_combination(self):
+        """It should return 404 when item exists but not in this order (not correct order-item combination)"""
+        # Create two orders
+        orders = self._create_orders(2)
+        order1 = orders[0]
+        order2 = orders[1]
+
+        # create an item for order1
+        item_1 = ItemFactory()
+        response = self.client.post(
+            f"/orders/{order1.id}/items",
+            json=item_1.serialize(),
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        # get the created item's id
+        item_1_data = response.get_json()
+        item_1_id = item_1_data["id"]
+
+        # create an item for order2
+        item_2 = ItemFactory()
+        response = self.client.post(
+            f"/orders/{order2.id}/items",
+            json=item_2.serialize(),
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        # try to update the item through order2
+        response = self.client.put(
+            f"/orders/{order2.id}/items/{item_1_id}",
+            json=item_1_data,
+            content_type="application/json",
+        )
+
+        # assert that the update attempt returns 404 since the item
+        # exists but doesn't belong to order2
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
