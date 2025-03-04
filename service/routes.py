@@ -23,7 +23,7 @@ and Delete YourResourceModel
 
 from flask import jsonify, request, url_for, abort
 from flask import current_app as app  # Import Flask application
-from service.models import Item, Order
+from service.models import Item, Order, OrderStatus
 from service.common import status  # HTTP Status Codes
 
 
@@ -96,7 +96,7 @@ def list_orders():
 
 # curl -X POST "http://127.0.0.1:8080/orders" \
 #      -H "Content-Type: application/json" \
-#      -d '{"customer_name": "Alice", "status": "pending"}'
+#      -d '{"customer_name": "Alice", "status": "PENDING"}'
 
 
 @app.route("/orders", methods=["POST"])
@@ -147,7 +147,7 @@ def get_order(order_id):
 
 # curl -X PUT "http://127.0.0.1:8080/orders/1" \
 #  -H "Content-Type: application/json" \
-#  -d '{"customer_name": "Alice", "status": "shipped"}'
+#  -d '{"customer_name": "Alice", "status": "SHIPPED"}'
 
 
 @app.route("/orders/<int:order_id>", methods=["PUT"])
