@@ -80,23 +80,27 @@ def list_orders():
 
     return jsonify(results), status.HTTP_200_OK
 
+    # @app.route("/orders")
+    # def list_orders():
+    #     """Returns all of the Orders"""
+    #     app.logger.info("Request for Order list")
+    #     orders = []
 
-# @app.route("/orders")
-# def list_orders():
-#     """Returns all of the Orders"""
-#     app.logger.info("Request for Order list")
-#     orders = []
+    #     return jsonify(orders), status.HTTP_200_OK
 
-#     return jsonify(orders), status.HTTP_200_OK
+    ######################################################################
+    # CREATE A NEW ORDER
+    ######################################################################
 
+    # curl -X POST "http://127.0.0.1:8080/orders" \
+    #      -H "Content-Type: application/json" \
+    #      -d '{"customer_name": "Alice", "status": "PENDING"}'
 
-######################################################################
-# CREATE A NEW ORDER
-######################################################################
-
-# curl -X POST "http://127.0.0.1:8080/orders" \
-#      -H "Content-Type: application/json" \
-#      -d '{"customer_name": "Alice", "status": "PENDING"}'
+    """ 
+    curl -X POST "http://127.0.0.1:8080/orders" \
+      -H "Content-Type: application/json" \
+      -d '{"customer_name": "Alice", "status": "PENDING"}'
+    """
 
 
 @app.route("/orders", methods=["POST"])
@@ -211,7 +215,6 @@ def list_items_with_order_id(order_id):
      -H "Content-Type: application/json" \
     -d '{
           "name": "Laptop",
-          "description": "Gaming laptop",
            "price": 1200.99,
            "quantity": 10
           }'
