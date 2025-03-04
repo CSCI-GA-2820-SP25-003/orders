@@ -32,7 +32,7 @@ class OrderFactory(factory.Factory):
 
     id = factory.Sequence(lambda n: n)
     customer_name = factory.Faker("name")
-    status = FuzzyChoice(OrderStatus)
+    status = FuzzyChoice(list(OrderStatus))
     created_at = FuzzyDate(date(2008, 1, 1))
     updated_at = FuzzyDate(date(2008, 9, 8))
 
@@ -61,7 +61,13 @@ class ItemFactory(factory.Factory):
     id = factory.Sequence(lambda n: n)
     order_id = None
     name = FuzzyChoice(
-        choices=["Electronics", "Clothing", "Books", "Toys", "Furniture"]
+        choices=[
+            "Electronics",
+            "Clothing",
+            "Books",
+            "Toys",
+            "Furniture",
+        ]
     )
     quantity = FuzzyInteger(1, 5)
     price = FuzzyInteger(10, 50)
