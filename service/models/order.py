@@ -70,7 +70,19 @@ class Order(db.Model, PersistentBase):
     def deserialize(self, data: dict) -> None:
         try:
             self.customer_name = data["customer_name"]
-            self.status = data["status"]
+
+            # Ensure status is properly converted to ENUM
+            status_str = data.get("status", "PENDING")  # Default to "PENDING"
+            if (
+                isinstance(status_str, str)
+                and status_str.upper() in OrderStatus.__members__
+            ):
+                self.status = OrderStatus[status_str.upper()]  # Convert string to ENUM
+            else:
+                raise DataValidationError(
+                    f"Invalid status: {status_str}. Allowed values: {OrderStatus.list()}"
+                )
+
             self.created_at = (
                 datetime.fromisoformat(data["created_at"])
                 if "created_at" in data
