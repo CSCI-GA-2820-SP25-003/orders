@@ -93,7 +93,7 @@ class TestYourResourceService(TestCase):
         resp = self.client.get("/")
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
 
-    ################ TEST CASE FOR DELETING ORDERS ########################
+    ################ TEST CASES FOR DELETING ORDERS ########################
     def test_delete_order(self):
         """Delete an order based on its order id"""
         order = self._create_orders(1)[0]
@@ -110,7 +110,16 @@ class TestYourResourceService(TestCase):
         )
         self.assertEqual(resp.status_code, status.HTTP_404_NOT_FOUND)
 
-    ################ TEST CASE FOR DELETING ITEM ########################
+    def test_delete_order_no_order_id(self):
+        """Delete an order with no order id"""
+        # Create an order
+        _ = self._create_orders(1)[0]
+
+        # delete an order with no order id
+        resp = self.client.delete("/orders/0")
+        self.assertEqual(resp.status_code, status.HTTP_404_NOT_FOUND)
+
+    ################ TEST CASES FOR DELETING ITEM ########################
     def test_delete_item(self):
         """Delete items from the order based on the order id"""
         order = self._create_orders(1)[0]
@@ -131,12 +140,29 @@ class TestYourResourceService(TestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
+        json = response.get_json()
+        item_id = json["id"]
         # Delete the item and assert
-        response = self.client.delete(f"/orders/{order.id}/items/{item.id}")
+        response = self.client.delete(f"/orders/{order.id}/items/{item_id}")
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
 
         # Assert if order no longer contain the item
         response = self.client.get(
-            f"/orders/{order.id}/items/{item.id}", content_type="application/json"
+            f"/orders/{order.id}/items/{item_id}", content_type="application/json"
         )
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_delete_item_no_order(self):
+        """Try to delete item with no order id"""
+        item = ItemFactory()
+
+        # Try and add item to a non existing order
+        response = self.client.post(
+            "/orders/0/items",
+            json=item.serialize(),
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+        response = self.client.delete(f"/orders/0/items/{item.id}")
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
