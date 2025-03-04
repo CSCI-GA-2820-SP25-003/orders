@@ -23,7 +23,7 @@ and Delete YourResourceModel
 
 from flask import jsonify, request, url_for, abort
 from flask import current_app as app  # Import Flask application
-from service.models import Item, Order
+from service.models import Item, Order, OrderStatus
 from service.common import status  # HTTP Status Codes
 
 
@@ -96,7 +96,7 @@ def list_orders():
 
 # curl -X POST "http://127.0.0.1:8080/orders" \
 #      -H "Content-Type: application/json" \
-#      -d '{"customer_name": "Alice", "status": "pending"}'
+#      -d '{"customer_name": "Alice", "status": "PENDING"}'
 
 
 @app.route("/orders", methods=["POST"])
@@ -117,7 +117,7 @@ def create_order():
     message = order.serialize()
     location_url = url_for("get_order", order_id=order.id, _external=True)
 
-    return jsonify(message), status.HTTP_201_CREATED, {"Location": location_url}
+    return jsonify(message), status.HTTP_201_CREATED, {"location": location_url}
 
 
 ######################################################################
@@ -170,7 +170,27 @@ def update_order(order_id):
     order.id = order_id
     order.update()
 
-    return jsonify(order.serialize()), 200
+    return jsonify(order.serialize()), status.HTTP_200_OK
+
+
+########### DELETE AN EXISTING ORDER USING AN ORDER ID #############
+
+
+@app.route("/orders/<int:order_id>", methods=["DELETE"])
+def delete_order(order_id):
+    """Delete order using the order id"""
+    app.logger.info("Request to delete an order with id: %s", order_id)
+
+    # check for order
+    order = Order.find(order_id)
+    if not order:
+        abort(
+            status.HTTP_404_NOT_FOUND,
+            f"Order with order id: '{order_id}' is not found and cannot be deleted",
+        )
+    order.delete()
+
+    return "", status.HTTP_204_NO_CONTENT
 
 
 ######################################################################
@@ -193,12 +213,14 @@ def list_items_with_order_id(order_id):
     # See if the order exists and abort if it doesn't
     order = Order.find(order_id)
     if not order:
-        abort(404, f"Order with id '{order_id}' could not be found.")
+        abort(
+            status.HTTP_404_NOT_FOUND, f"Order with id '{order_id}' could not be found."
+        )
 
     # Get the items for the order
     results = [item.serialize() for item in order.items]
 
-    return jsonify(results), 200
+    return jsonify(results), status.HTTP_200_OK
 
 
 ######################################################################
@@ -311,6 +333,32 @@ def get_item(order_id, item_id):
 #
 
 #     return jsonify(item.serialize()), 200
+
+
+#   D E L E T E     A N     I T E M     F R O M     A N E X I S T I N G     O R D E R   #
+@app.route("/orders/<int:order_id>/items/<int:item_id>", methods=["DELETE"])
+def delete_item_from_order(order_id, item_id):
+    """Delete an item from a given order"""
+    app.logger.info(
+        "Request to delete an item '%s' from Order with id: %s", (item_id, order_id)
+    )
+
+    # check for order
+    order = Order.find(order_id)
+    if not order:
+        abort(
+            status.HTTP_404_NOT_FOUND,
+            f"Order with order id: '{order_id}' NOT FOUND",
+        )
+    # Check if item is there
+    item = Item.find(item_id)
+    if item:
+        item.delete()
+
+    return "", status.HTTP_204_NO_CONTENT
+
+
+########################### R O U T E S     C O M P L E T E ################################
 
 
 def check_content_type(content_type):

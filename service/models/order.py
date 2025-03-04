@@ -53,30 +53,35 @@ class Order(db.Model, PersistentBase):
         )
 
     def serialize(self) -> dict:
+        if not isinstance(self.status, OrderStatus):
+            raise DataValidationError(
+                f"Invalid status value '{self.status}' not in OrderStatus Enum"
+            )
+
         return {
             "id": self.id,
             "customer_name": self.customer_name,
-            "status": self.status,
+            "status": self.status.value,
             "created_at": self.created_at.isoformat(),
+            "updated_at": self.updated_at.isoformat(),
             "items": [item.serialize() for item in self.items],
         }
 
     def deserialize(self, data: dict) -> None:
         try:
             self.customer_name = data["customer_name"]
-            self.status = data.get("status", "pending")
+            self.status = data["status"]
             self.created_at = (
                 datetime.fromisoformat(data["created_at"])
                 if "created_at" in data
-                else datetime.utcnow()
+                else datetime.now(timezone.utc)
             )
-
             item_list = data.get("items", [])
-            self.items = []
             for json_item in item_list:
                 item = Item()
                 item.deserialize(json_item)
                 self.items.append(item)
+
         except KeyError as error:
             raise DataValidationError(
                 "Invalid Order: missing " + error.args[0]
@@ -85,6 +90,7 @@ class Order(db.Model, PersistentBase):
             raise DataValidationError(
                 "Invalid Order: incorrect data type " + str(error)
             ) from error
+
         return self
 
     @classmethod

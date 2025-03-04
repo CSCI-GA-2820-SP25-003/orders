@@ -28,9 +28,8 @@ class Item(db.Model, PersistentBase):
         return {
             "id": self.id,
             "name": self.name,
-            "description": self.description,
             "price": self.price,
-            "stock": self.stock,
+            "quantity": self.quantity,
             "order_id": self.order_id,
         }
 
@@ -38,9 +37,8 @@ class Item(db.Model, PersistentBase):
     def deserialize(self, data: dict) -> None:
         try:
             self.name = data["name"]
-            self.description = data.get("description", "")
             self.price = float(data["price"])
-            self.stock = int(data["stock"])
+            self.quantity = int(data["quantity"])
             self.order_id = data.get("order_id")
         except KeyError as error:
             raise DataValidationError(
