@@ -56,7 +56,8 @@ class Order(db.Model, PersistentBase):
         return {
             "id": self.id,
             "customer_name": self.customer_name,
-            "status": self.status,
+            # "status": self.status,
+            "status": self.status.value,
             "created_at": self.created_at.isoformat(),
             "items": [item.serialize() for item in self.items],
         }
@@ -64,7 +65,19 @@ class Order(db.Model, PersistentBase):
     def deserialize(self, data: dict) -> None:
         try:
             self.customer_name = data["customer_name"]
-            self.status = data.get("status", "pending")
+
+            # Ensure status is properly converted to ENUM
+            status_str = data.get("status", "PENDING")  # Default to "PENDING"
+            if (
+                isinstance(status_str, str)
+                and status_str.upper() in OrderStatus.__members__
+            ):
+                self.status = OrderStatus[status_str.upper()]  # Convert string to ENUM
+            else:
+                raise DataValidationError(
+                    f"Invalid status: {status_str}. Allowed values: {OrderStatus.list()}"
+                )
+
             self.created_at = (
                 datetime.fromisoformat(data["created_at"])
                 if "created_at" in data
@@ -77,14 +90,13 @@ class Order(db.Model, PersistentBase):
                 item = Item()
                 item.deserialize(json_item)
                 self.items.append(item)
+
         except KeyError as error:
             raise DataValidationError(
-                "Invalid Order: missing " + error.args[0]
+                f"Invalid Order: missing {error.args[0]}"
             ) from error
-        except TypeError as error:
-            raise DataValidationError(
-                "Invalid Order: incorrect data type " + str(error)
-            ) from error
+        except (TypeError, ValueError) as error:
+            raise DataValidationError(f"Invalid Order: {str(error)}") from error
         return self
 
     @classmethod
