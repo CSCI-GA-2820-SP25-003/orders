@@ -166,3 +166,12 @@ class TestYourResourceService(TestCase):
 
         response = self.client.delete(f"/orders/0/items/{item.id}")
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_delete_item_no_id(self):
+        """Try to delete an item from an order with no item id"""
+        # create an order
+        order = self._create_orders(1)[0]
+
+        # try to delete an item from the order
+        response = self.client.delete(f"/orders/{order.id}/items/0")
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)

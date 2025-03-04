@@ -85,13 +85,14 @@ def list_orders():
     #     app.logger.info("Request for Order list")
     #     orders = []
 
-    
+
 ######### C R E A T E   A   N E W   O R D E R #########
 """
 curl -X POST "http://127.0.0.1:8080/orders" \
 -H "Content-Type: application/json" \
 -d '{"customer_name": "Alice", "status": "PENDING"}'
 """
+
 
 @app.route("/orders", methods=["POST"])
 def create_order():
@@ -140,6 +141,7 @@ curl -X PUT "http://127.0.0.1:8080/orders/1" \
     -H "Content-Type: application/json" \
     -d '{"customer_name": "Alice", "status": "shipped"}'
 """
+
 
 @app.route("/orders/<int:order_id>", methods=["PUT"])
 def update_order(order_id):
@@ -213,11 +215,11 @@ curl -X POST "http://127.0.0.1:8080/orders/1/items" \
 -H "Content-Type: application/json" \
 -d '{
     "name": "Laptop",
-    "description": "Gaming laptop",
     "price": 1200.99,
     "stock": 10
     }'
 """
+
 
 @app.route("/orders/<int:order_id>/items", methods=["POST"])
 def create_item(order_id):
@@ -260,6 +262,7 @@ def create_item(order_id):
 curl -X GET "http://127.0.0.1:8080/orders/1/items/1"
 """
 
+
 @app.route("/orders/<int:order_id>/items/<int:item_id>", methods=["GET"])
 def get_item(order_id, item_id):
     """
@@ -280,7 +283,6 @@ def get_item(order_id, item_id):
     return jsonify(item.serialize()), status.HTTP_200_OK
 
 
-
 ##########   U P D A T E     A N     I T E M     F R O M     A N     E X I S T I N G     O R D E R   #########
 """
 curl -X PUT "http://127.0.0.1:8080/orders/1/items/2" \
@@ -291,6 +293,7 @@ curl -X PUT "http://127.0.0.1:8080/orders/1/items/2" \
            "quantity": 5
          }'
 """
+
 
 @app.route("/orders/<int:order_id>/items/<int:item_id>", methods=["PUT"])
 def update_item(order_id, item_id):
@@ -338,13 +341,17 @@ def delete_item_from_order(order_id, item_id):
     if not order:
         abort(
             status.HTTP_404_NOT_FOUND,
-            f"Order with order id: '{order_id}' NOT FOUND",
+            f"Order with order id: '{order_id}' could not be found.",
         )
     # Check if item is there
     item = Item.find(item_id)
-    if item:
-        item.delete()
+    if not item:
+        abort(
+            status.HTTP_404_NOT_FOUND,
+            f"Item with id '{item_id}' in Order '{order_id}' could not be found.",
+        )
 
+    item.delete()
     return "", status.HTTP_204_NO_CONTENT
 
 
@@ -366,4 +373,15 @@ def check_content_type(content_type):
     app.logger.error("Invalid Content-Type: %s", request.headers["Content-Type"])
     abort(
         status.HTTP_415_UNSUPPORTED_MEDIA_TYPE, f"Content-Type must be {content_type}"
+    )
+
+
+# route to trigger 500 internal server error
+@app.route("/500_error")
+def server_error():
+    """Triggers server error"""
+    app.logger.info("Triggering 500_INTERNAL_SERVER_ERROR.")
+    abort(
+        status.HTTP_500_INTERNAL_SERVER_ERROR,
+        "Testing 500_INTERNAL_SERVER_ERROR",
     )
