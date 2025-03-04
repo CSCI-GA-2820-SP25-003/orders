@@ -15,7 +15,7 @@
 ######################################################################
 
 """
-Test cases for Pet Model
+Test cases for Item Model
 """
 
 # pylint: disable=duplicate-code
@@ -96,3 +96,83 @@ class TestItemModel(TestCase):
         new_order = Order.find(order.id)
         self.assertEqual(len(new_order.items), 2)
         self.assertEqual(new_order.items[1].name, item2.name)
+
+    def test_serialization(self):
+        """Item should be correctly serialized"""
+        item = ItemFactory()
+        json = item.serialize()
+
+        self.assertEqual(json["id"], item.id)
+        self.assertEqual(json["order_id"], item.order_id)
+        self.assertEqual(json["name"], item.name)
+        self.assertEqual(json["quantity"], item.quantity)
+        self.assertEqual(json["price"], item.price)
+
+    def test_deserialize(self):
+        """Item should be correctly deserialized"""
+
+        # dummy item
+        item = ItemFactory()
+        item.create()
+        # create an item object containing the same values
+        new_item = Item()
+        new_item.deserialize(item.serialize())
+        self.assertEqual(new_item.name, item.name)
+        self.assertEqual(new_item.quantity, item.quantity)
+        self.assertEqual(new_item.price, item.price)
+
+    def test_item_repr(self):
+        """Item should return a string representation"""
+        item = ItemFactory()
+        # check if item id and name is in the string representation
+        self.assertIn(str(item.id), repr(item))
+        self.assertIn(item.name, repr(item))
+
+    def test_update_item_non_existant(self):
+        """It should not update an item that is non existant"""
+        item = ItemFactory()
+        # set id to a value that will not exist in the db
+        item.id = 0
+        self.assertRaises(DataValidationError, item.update)
+
+    def test_delete_non_existant(self):
+        """It should not delete an item that is non existant"""
+        item = ItemFactory()
+        # set id to a value that will not exist in the db
+        item.id = 0
+        self.assertRaises(DataValidationError, item.delete)
+
+    def test_deserialize_valid_data(self):
+        """Test deserialization with valid data"""
+
+        valid_data = {"name": "Laptop", "price": 1200.99, "quantity": 2, "order_id": 1}
+
+        item = Item().deserialize(valid_data)
+        self.assertEqual(item.name, "Laptop")
+        self.assertEqual(item.price, 1200.99)
+        self.assertEqual(item.quantity, 2)
+        self.assertEqual(item.order_id, 1)
+
+    def test_deserialize_missing_field(self):
+        """Test deserialization with missing required field"""
+
+        missing_field_data = {"price": 1200.99, "quantity": 2}
+
+        item = Item()
+        with self.assertRaises(DataValidationError) as context:
+            item.deserialize(missing_field_data)
+        self.assertIn("Invalid Item: missing name", str(context.exception))
+
+    def test_deserialize_invalid_type(self):
+        """Test deserialization with incorrect data types"""
+
+        invalid_type_data = {
+            "name": "Laptop",
+            "price": "free",  # Invalid type, should be float
+            "quantity": "many",  # Invalid type, should be int
+        }
+
+        item = Item()
+        with self.assertRaises(DataValidationError) as context:
+            item.deserialize(invalid_type_data)
+        self.assertIn("Invalid Item: incorrect data type", str(context.exception))
