@@ -279,7 +279,7 @@ class TestYourResourceService(TestCase):
         response = self.client.delete(f"/orders/{order.id}/items/0")
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
-    # Test CASES FOR READING AN ORDER
+    # TEST CASES FOR READING AN ORDER
     def test_read_order(self):
         orders = self._create_orders(1)
         test_order = orders[0]
@@ -296,11 +296,7 @@ class TestYourResourceService(TestCase):
         response = self.client.get(
             f"/orders/{test_order.id + 1}", content_type="application/json"
         )
-        self.assertEqual(
-            response.status_code,
-            status.HTTP_404_NOT_FOUND,
-            f"Order with id '{test_order.id + 1}' was not found.",
-        )
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_read_order_invalid_id(self):
         orders = self._create_orders(1)
