@@ -2,6 +2,8 @@ import pytest
 from unittest.mock import patch
 from service import create_app
 
+"""Unit tests for service initialization."""
+
 
 def test_create_app_exception_handling(capfd):
     """Test if exception handling is triggered during app initialization"""

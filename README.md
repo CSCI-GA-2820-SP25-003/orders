@@ -3,13 +3,9 @@
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Python](https://img.shields.io/badge/Language-Python-blue.svg)](https://python.org/)
 
-This is a skeleton you can use to start your projects.
+<!-- ## Overview
 
-**Note:** _Feel free to overwrite this `README.md` file with the one that describes your project._
-
-## Overview
-
-This project template contains starter code for your class project. The `/service` folder contains your `models.py` file for your model and a `routes.py` file for your service. The `/tests` folder has test case starter code for testing the model and the service separately. All you need to do is add your functionality. You can use the [lab-flask-tdd](https://github.com/nyu-devops/lab-flask-tdd) for code examples to copy from.
+This project template contains starter code for your class project. The `/service` folder contains your `models.py` file for your model and a `routes.py` file for your service. The `/tests` folder has test case starter code for testing the model and the service separately. All you need to do is add your functionality. You can use the [lab-flask-tdd](https://github.com/nyu-devops/lab-flask-tdd) for code examples to copy from. -->
 
 ## Automatic Setup
 
@@ -44,8 +40,9 @@ pyproject.toml      - Poetry list of Python libraries required by your code
 service/                   - service python package
 ├── __init__.py            - package initializer
 ├── config.py              - configuration parameters
-├── models.py              - module with business models
-├── routes.py              - module with service routes
+├── order.py               - module with database model for order
+├── item.py                - module with database model for item
+├── routes.py              - module with order service routes
 └── common                 - common code package
     ├── cli_commands.py    - Flask command to recreate all tables
     ├── error_handlers.py  - HTTP error handling code
@@ -70,6 +67,7 @@ To start the REST API, use the following command:
 make run
 ```
 
+## Commands
 ### Index Page
 
 To access index page, in browser, go to the url:
@@ -77,39 +75,81 @@ To access index page, in browser, go to the url:
 http://localhost:8080/
 ```
 
-### Create an Order
+### Orders
+#### Create an Order
 
 ```bash
 curl -X POST "http://127.0.0.1:8080/orders" \
 -H "Content-Type: application/json" \
--d '{"customer_name": "Alice", "status": "PENDING"}'
+-d '{"customer_name": "<name>", "status": "<status>"}'
 ```
-This will create an order with customer name "Alice" and status of PENDING.
 
-### List orders
-List all orders till now:
+#### List Orders
+##### List all orders
 ```bash
 curl -X GET "http://127.0.0.1:8080/orders"
 ```
 
-List all orders corresponding to the name provided:
+##### List all orders, filtered by status
 ```bash
-curl -X GET "http://127.0.0.1:8080/orders?name=<name>"
+curl -X GET "http://127.0.0.1:8080/orders?status=<status>"
 ```
 
-### Create an Item
+##### List order with order_id
+```bash
+curl -X GET "http://127.0.0.1:8080/orders/<order_id>"
+```
 
+#### Update Orders
+```bash
+curl -X PUT "http://127.0.0.1:8080/orders/<order_id>" \
+     -H "Content-Type: application/json" \
+     -d '{"customer_name": "<name>", "status": "<status>"}'
+```
+
+#### Delete Orders
+```bash
+curl -X DELETE "http://127.0.0.1:8080/orders/<order_id>"
+```
+
+### Items
+#### Create and Add an Item
 ```bash
 curl -X POST "http://127.0.0.1:8080/orders/<order_id>/items" \
--H "Content-Type: application/json" \
--d '{
-    "name": "Laptop",
-    "price": 1200.99,
-    "quantity": 10
-    }'
+     -H "Content-Type: application/json" \
+     -d '{
+           "name": "<item_name>",
+           "price": <price>,
+           "quantity": <qty>
+         }'
 ```
-This will create an item with name "Laptop", price of '1200.99', and quantity of '10' associated with the given order id.
 
+#### List Items
+##### List all items corresponding to order_id
+```bash
+curl -X GET "http://127.0.0.1:8080/orders/<order_id>/items"
+```
+
+##### List item corresponding to order_id and item_id
+```bash
+curl -X GET "http://127.0.0.1:8080/orders/<order_id>/items/<item_id>"
+```
+
+#### Update Items
+```bash
+curl -X PUT "http://127.0.0.1:8080/orders/<order_id>/items/<item_id>" \
+     -H "Content-Type: application/json" \
+     -d '{
+           "name": "<new_item>",
+           "price": <new_price>,
+           "quantity": <new_qty>
+         }'
+```
+
+#### Delete Items
+```bash
+curl -X DELETE "http://127.0.0.1:8080/orders/<order_id>/items/<item_id>"
+```
 
 ## License
 
