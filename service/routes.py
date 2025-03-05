@@ -56,9 +56,10 @@ def index():
 
 
 # L I S T   A L L   O R D E R S #########
-"""
-curl -X GET "http://127.0.0.1:8080/orders"
-"""
+# """
+# curl -X GET "http://127.0.0.1:8080/orders"
+# """
+
 
 
 @app.route("/orders", methods=["GET"])
@@ -132,11 +133,11 @@ def list_orders():
 
 
 # C R E A T E   A   N E W   O R D E R #########
-"""
-curl -X POST "http://127.0.0.1:8080/orders" \
--H "Content-Type: application/json" \
--d '{"customer_name": "Alice", "status": "PENDING"}'
-"""
+# """
+# curl -X POST "http://127.0.0.1:8080/orders" \
+# -H "Content-Type: application/json" \
+# -d '{"customer_name": "Alice", "status": "PENDING"}'
+# """
 
 
 @app.route("/orders", methods=["POST"])
@@ -161,9 +162,9 @@ def create_order():
 
 
 # R E T R E I V E   A N     O R D E R   U S I N G   O R D E R   I D #########
-"""
-curl -X GET "http://127.0.0.1:8080/orders/1"
-"""
+# """
+# curl -X GET "http://127.0.0.1:8080/orders/1"
+# """
 
 
 @app.route("/orders/<int:order_id>", methods=["GET"])
@@ -181,11 +182,11 @@ def get_order(order_id):
 
 
 # U P D A T E   A N    E X I S T I N G   O R D E R    U S I N G      O R D E R   I D #
-"""
-curl -X PUT "http://127.0.0.1:8080/orders/1" \
-    -H "Content-Type: application/json" \
-    -d '{"customer_name": "Alice", "status": "shipped"}'
-"""
+# """
+# curl -X PUT "http://127.0.0.1:8080/orders/1" \
+#     -H "Content-Type: application/json" \
+#     -d '{"customer_name": "Alice", "status": "shipped"}'
+# """
 
 
 @app.route("/orders/<int:order_id>", methods=["PUT"])
@@ -258,15 +259,15 @@ def list_items(order_id):
 
 
 #   A D D     A N     I T E M     T O   A N     A N     E X I S T I N G     O R D E R   ##
-"""
-curl -X POST "http://127.0.0.1:8080/orders/1/items" \
--H "Content-Type: application/json" \
--d '{
-    "name": "Laptop",
-    "price": 1200.99,
-    "quantity": 10
-    }'
-"""
+# """
+# curl -X POST "http://127.0.0.1:8080/orders/1/items" \
+# -H "Content-Type: application/json" \
+# -d '{
+#     "name": "Laptop",
+#     "price": 1200.99,
+#     "quantity": 10
+#     }'
+# """
 
 
 @app.route("/orders/<int:order_id>/items", methods=["POST"])
@@ -306,9 +307,9 @@ def create_item(order_id):
 
 
 #  R E T R E I V E    A N     I T E M     F R O M     A N      E X I S T I N G     O R D E R   #########
-"""
-curl -X GET "http://127.0.0.1:8080/orders/1/items/1"
-"""
+# """
+# curl -X GET "http://127.0.0.1:8080/orders/1/items/1"
+# """
 
 
 @app.route("/orders/<int:order_id>/items/<int:item_id>", methods=["GET"])
@@ -332,15 +333,15 @@ def get_item(order_id, item_id):
 
 
 #   U P D A T E     A N     I T E M     F R O M     A N     E X I S T I N G     O R D E R   #########
-"""
-curl -X PUT "http://127.0.0.1:8080/orders/1/items/2" \
-     -H "Content-Type: application/json" \
-     -d '{
-           "name": "Updated Laptop",
-           "price": 999.99,
-           "quantity": 5
-         }'
-"""
+# """
+# curl -X PUT "http://127.0.0.1:8080/orders/1/items/2" \
+#      -H "Content-Type: application/json" \
+#      -d '{
+#            "name": "Updated Laptop",
+#            "price": 999.99,
+#            "quantity": 5
+#          }'
+# """
 
 
 @app.route("/orders/<int:order_id>/items/<int:item_id>", methods=["PUT"])

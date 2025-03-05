@@ -1,3 +1,10 @@
+"""
+Item class
+
+Item class is a model for the item table in the database.
+
+"""
+
 import logging
 from .persistent_base import db, PersistentBase, DataValidationError
 
@@ -27,6 +34,7 @@ class Item(db.Model, PersistentBase):
 
     # Add description back will cause data base error: Description is not a column of Item
     def serialize(self) -> dict:
+        """Serializes an Item into a dictionary"""
         return {
             "id": self.id,
             "name": self.name,
@@ -37,6 +45,7 @@ class Item(db.Model, PersistentBase):
 
     # to object
     def deserialize(self, data: dict) -> None:
+        """Deserializes a Item from a dictionary"""
         try:
             self.name = data["name"]
             self.price = float(data["price"])
