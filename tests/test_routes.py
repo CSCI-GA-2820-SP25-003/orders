@@ -766,7 +766,7 @@ class TestYourResourceService(TestCase):
         self.assertEqual(get_item["name"], "Updated Item Name")
         self.assertNotIn("extra_field", get_item)
 
-    ################ TEST CASES FOR LIST ORDERS ########################
+    # TEST CASES FOR LIST ORDERS ########################
     def test_list_orders(self):
         """Test listing all orders"""
         # Create a set of orders for testing
@@ -792,7 +792,7 @@ class TestYourResourceService(TestCase):
 
     def test_list_orders_by_status(self):
         """Test listing orders filtered by status"""
-        from service.models import OrderStatus
+        # from service.models import OrderStatus
 
         # Create several orders (the _create_orders method should create them with default statuses)
         orders = []
@@ -864,7 +864,7 @@ class TestYourResourceService(TestCase):
         self.assertEqual(data["metadata"]["page_size"], 5)
         self.assertEqual(data["metadata"]["total_pages"], 3)
 
-    ########### TEST CASES FOR LIST ITEMS IN AN ORDER ############
+    # TEST CASES FOR LIST ITEMS IN AN ORDER ############
     def test_list_items(self):
         """It should List all Items in an Order"""
         # Create an order first
