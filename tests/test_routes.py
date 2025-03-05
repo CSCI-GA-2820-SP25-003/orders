@@ -765,3 +765,133 @@ class TestYourResourceService(TestCase):
         get_item = response.get_json()
         self.assertEqual(get_item["name"], "Updated Item Name")
         self.assertNotIn("extra_field", get_item)
+
+    ################ TEST CASES FOR LIST ORDERS ########################
+    def test_list_orders(self):
+        """Test listing all orders"""
+        # Create a set of orders for testing
+        orders = []
+        for i in range(5):
+            order = self._create_orders(1)[0]
+            orders.append(order)
+
+        # Send a request to the list endpoint
+        resp = self.client.get("/orders")
+
+        # Check response
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        data = resp.get_json()
+
+        # Check structure of the response
+        self.assertIn("orders", data)
+        self.assertIn("metadata", data)
+
+        # Check that we got all the orders we created
+        self.assertEqual(len(data["orders"]), 5)
+        self.assertEqual(data["metadata"]["total_items"], 5)
+
+    def test_list_orders_by_status(self):
+        """Test listing orders filtered by status"""
+        from service.models import OrderStatus
+
+        # Create several orders (the _create_orders method should create them with default statuses)
+        orders = []
+        for _ in range(5):
+            order = self._create_orders(1)[0]
+            orders.append(order)
+
+        # Get the status of one of the orders to use for filtering
+        test_order = orders[0]
+        status_to_filter = test_order.status
+        status_value = (
+            status_to_filter.value
+            if hasattr(status_to_filter, "value")
+            else str(status_to_filter)
+        )
+
+        print(f"Filtering by status: {status_to_filter} (value: {status_value})")
+
+        # Count how many orders have this status
+        matching_orders = [o for o in orders if o.status == status_to_filter]
+        expected_count = len(matching_orders)
+        print(
+            f"Expected to find {expected_count} orders with status {status_to_filter}"
+        )
+
+        # Send request to filter by this status
+        resp = self.client.get(f"/orders?status={status_value}")
+
+        # Check response
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        data = resp.get_json()
+        print(f"Response data: {data}")
+
+        # Ensure we found the expected number of orders
+        self.assertEqual(len(data["orders"]), expected_count)
+
+        # Verify all returned orders have the right status
+        for order_data in data["orders"]:
+            self.assertEqual(order_data["status"], status_value)
+
+    def test_list_orders_with_pagination(self):
+        """Test listing orders with pagination"""
+        # Create 15 orders to test pagination
+        orders = []
+        for i in range(15):
+            order = self._create_orders(1)[0]
+            orders.append(order)
+
+        # Get first page (default is 10 per page)
+        resp = self.client.get("/orders")
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        data = resp.get_json()
+        self.assertEqual(len(data["orders"]), 10)
+        self.assertEqual(data["metadata"]["page"], 1)
+        self.assertEqual(data["metadata"]["total_items"], 15)
+
+        # Get second page (remaining 5 orders)
+        resp = self.client.get("/orders?page=2")
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        data = resp.get_json()
+        self.assertEqual(len(data["orders"]), 5)
+        self.assertEqual(data["metadata"]["page"], 2)
+
+        # Test custom page size
+        resp = self.client.get("/orders?page=1&page_size=5")
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        data = resp.get_json()
+        self.assertEqual(len(data["orders"]), 5)
+        self.assertEqual(data["metadata"]["page_size"], 5)
+        self.assertEqual(data["metadata"]["total_pages"], 3)
+
+    ########### TEST CASES FOR LIST ITEMS IN AN ORDER ############
+    def test_list_items(self):
+        """It should List all Items in an Order"""
+        # Create an order first
+        order = self._create_orders(1)[0]
+        self.assertIsNotNone(order)
+
+        # Create a few items for this order
+        items = []
+        for _ in range(3):
+            item = ItemFactory()
+            response = self.client.post(
+                f"/orders/{order.id}/items",
+                json=item.serialize(),
+                content_type="application/json",
+            )
+            self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+            items.append(response.get_json())
+
+        # Send a request to list items
+        response = self.client.get(f"/orders/{order.id}/items")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        # Check the response
+        data = response.get_json()
+        self.assertEqual(len(data), 3)
+
+        # Verify the items match what we created
+        item_ids = [item["id"] for item in data]
+        for item in items:
+            self.assertIn(item["id"], item_ids)

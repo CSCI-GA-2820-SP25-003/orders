@@ -56,34 +56,74 @@ def index():
 
 
 ######### L I S T   A L L   O R D E R S #########
-"""
-curl -X GET "http://127.0.0.1:8080/orders"
-"""
-
-
 @app.route("/orders", methods=["GET"])
 def list_orders():
-    """Returns all of the Orders"""
-    app.logger.info("Request for Order list")
-    orders = []
+    """
+    List all Orders
+    This endpoint returns a list of all Orders with optional filtering and pagination
+    """
+    app.logger.info("Request to list Orders...")
 
-    # Process the query string if any
-    name = request.args.get("name")
-    if name:
-        orders = Order.find_by_name(name)
-    else:
-        orders = Order.all()
+    # Get query parameters
+    status_val = request.args.get("status")
+    page = request.args.get("page", 1, type=int)
+    page_size = request.args.get("page_size", 10, type=int)
 
-    # Return as an array of dictionaries
-    results = [order.serialize() for order in orders]
+    # Get all orders
+    orders = Order.all()
+    app.logger.info(f"Found {len(orders)} total orders")
 
-    return jsonify(results), status.HTTP_200_OK
+    # Filter orders manually to ensure correct status comparison
+    filtered_orders = []
 
-    # @app.route("/orders")
-    # def list_orders():
-    #     """Returns all of the Orders"""
-    #     app.logger.info("Request for Order list")
-    #     orders = []
+    for order in orders:
+        # Only filter by status if a status filter was provided
+        if status_val:
+            # Get the order's status value as a string for comparison
+            order_status = order.status
+            order_status_val = (
+                order_status.value
+                if hasattr(order_status, "value")
+                else str(order_status)
+            )
+
+            app.logger.info(
+                f"Order {order.id}: status={order_status_val}, requested={status_val}"
+            )
+
+            # Skip this order if status doesn't match
+            if order_status_val != status_val:
+                continue
+
+        # If we get here, add the order to our filtered list
+        filtered_orders.append(order)
+
+    app.logger.info(f"After filtering: {len(filtered_orders)} orders match criteria")
+
+    # Apply pagination
+    total_items = len(filtered_orders)
+    start_idx = (page - 1) * page_size
+    end_idx = start_idx + page_size
+    paged_orders = filtered_orders[start_idx:end_idx]
+
+    # Calculate total pages
+    total_pages = (total_items + page_size - 1) // page_size if total_items > 0 else 0
+
+    # Create response
+    results = [order.serialize() for order in paged_orders]
+
+    response = {
+        "orders": results,
+        "metadata": {
+            "page": page,
+            "page_size": page_size,
+            "total_items": total_items,
+            "total_pages": total_pages,
+        },
+    }
+
+    app.logger.info(f"Returning {len(results)} orders")
+    return jsonify(response), status.HTTP_200_OK
 
 
 ######### C R E A T E   A   N E W   O R D E R #########
@@ -192,20 +232,23 @@ def delete_order(order_id):
 #########   L I S T     I T E M S     F R O M     A N   E X I S T I N G     O R D E R   #########
 # curl -X GET "http://127.0.0.1:8080/orders/1/items"
 @app.route("/orders/<int:order_id>/items", methods=["GET"])
-def list_items_with_order_id(order_id):
-    """Returns all of the Items for an Order"""
-    app.logger.info("Request for all Items for Order with id: %s", order_id)
+def list_items(order_id):
+    """
+    List Items in an Order
+    This endpoint returns all Items for an Order
+    """
+    app.logger.info(f"Request to list Items for Order with id: {order_id}")
 
-    # See if the order exists and abort if it doesn't
+    # Check if order exists
     order = Order.find(order_id)
     if not order:
-        abort(
-            status.HTTP_404_NOT_FOUND, f"Order with id '{order_id}' could not be found."
-        )
+        abort(status.HTTP_404_NOT_FOUND, f"Order with id '{order_id}' was not found.")
 
-    # Get the items for the order
-    results = [item.serialize() for item in order.items]
+    # Get items for the order
+    items = order.items
+    results = [item.serialize() for item in items]
 
+    app.logger.info(f"Returning {len(results)} items for Order {order_id}")
     return jsonify(results), status.HTTP_200_OK
 
 
