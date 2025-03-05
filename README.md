@@ -60,6 +60,40 @@ tests/                     - test cases package
 └── test_routes.py         - test suite for service routes
 ```
 
+
+## Instructions
+### Running the API
+
+To start the REST API, use the following command:
+
+```bash
+make run
+
+### Index Page
+To access index page, in browser, go to the url:
+http://localhost:8080/
+
+### Create an Order
+Example:
+curl -X POST "http://127.0.0.1:8080/orders" \
+-H "Content-Type: application/json" \
+-d '{"customer_name": "Alice", "status": "PENDING"}'
+
+This will create an order with customer name Alice and status of pending.
+
+### Create an Item
+Example:
+curl -X POST "http://127.0.0.1:8080/orders/1/items" \
+-H "Content-Type: application/json" \
+-d '{
+    "name": "Laptop",
+    "price": 1200.99,
+    "quantity": 10
+    }'
+
+This will create an item with name Laptop, price of 1200.99, and quantity of 10.
+
+
 ## License
 
 Copyright (c) 2016, 2025 [John Rofrano](https://www.linkedin.com/in/JohnRofrano/). All rights reserved.

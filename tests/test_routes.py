@@ -24,7 +24,7 @@ import logging
 from unittest import TestCase
 from wsgi import app
 from service.common import status
-from service.models import db, Item, Order
+from service.models import db, Order
 from tests.factories import OrderFactory, ItemFactory
 
 DATABASE_URI = os.getenv(
@@ -64,7 +64,7 @@ class TestYourResourceService(TestCase):
         """This runs after each test"""
         db.session.remove()
 
-    ################### H E L P E R     C O D E #########################
+    # H E L P E R     C O D E #########################
     def _create_orders(self, num):
         """Helper function to create orders in bulk"""
         orders = []
@@ -98,7 +98,7 @@ class TestYourResourceService(TestCase):
         resp = self.client.get("/health")
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
 
-    ################ TEST CASES FOR CREATING ORDERS ########################
+    # TEST CASES FOR CREATING ORDERS ########################
     def test_create_order(self):
         """Create an Order"""
         order = OrderFactory()
@@ -140,7 +140,7 @@ class TestYourResourceService(TestCase):
         self.assertEqual(json["customer_name"], order.customer_name)
         self.assertEqual(json["status"], order.status.name)
 
-    ################ TEST CASES FOR DELETING ORDERS ########################
+    # TEST CASES FOR DELETING ORDERS ########################
     def test_delete_order(self):
         """Delete an order based on its order id"""
         order = self._create_orders(1)[0]
@@ -166,7 +166,7 @@ class TestYourResourceService(TestCase):
         resp = self.client.delete("/orders/0")
         self.assertEqual(resp.status_code, status.HTTP_404_NOT_FOUND)
 
-    ################ TEST CASES FOR UPDATE ORDERS ########################
+    # TEST CASES FOR UPDATE ORDERS ########################
 
     def test_update_order(self):
         """Update an existing order"""
@@ -300,7 +300,7 @@ class TestYourResourceService(TestCase):
         self.assertEqual(get_order["status"], "SHIPPED")
         self.assertNotIn("extra_field", get_order)
 
-    ################ TEST CASES FOR CREATING ITEMS ########################
+    # TEST CASES FOR CREATING ITEMS ########################
 
     def test_create_item(self):
         """Create an Item for an Order"""
@@ -357,7 +357,7 @@ class TestYourResourceService(TestCase):
         self.assertEqual(json["price"], item.price)
         self.assertEqual(json["quantity"], item.quantity)
 
-    ################ TEST CASES FOR DELETING ITEM ########################
+    # TEST CASES FOR DELETING ITEM ########################
     def test_delete_item(self):
         """Delete items from the order based on the order id"""
         order = self._create_orders(1)[0]
@@ -414,7 +414,7 @@ class TestYourResourceService(TestCase):
         response = self.client.delete(f"/orders/{order.id}/items/0")
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
-    ################ TEST CASES FOR READING AN ORDER ################
+    # TEST CASES FOR READING AN ORDER ################
     def test_read_order(self):
         orders = self._create_orders(1)
         test_order = orders[0]
@@ -434,14 +434,14 @@ class TestYourResourceService(TestCase):
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_read_order_invalid_id(self):
-        orders = self._create_orders(1)
+        # orders = self._create_orders(1)
 
         response = self.client.get(
             f"/orders/{'invalid id'}", content_type="application/json"
         )
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
-    ################ TEST CASES FOR READING ITEM IN AN ORDER ################
+    # TEST CASES FOR READING ITEM IN AN ORDER ################
     def test_read_item_in_order(self):
         orders = self._create_orders(1)
         test_order = orders[0]
@@ -475,7 +475,7 @@ class TestYourResourceService(TestCase):
         response = self.client.get(f"/orders/{test_order.id}/items/{item.id + 1}")
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
-    ################ TEST CASES FOR UPDATE ITEMS ########################
+    # TEST CASES FOR UPDATE ITEMS ########################
 
     def test_update_item_existing_order_existing_item(self):
         """Update an item with existing order id and existing item id"""
