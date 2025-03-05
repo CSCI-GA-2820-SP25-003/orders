@@ -776,7 +776,7 @@ class TestYourResourceService(TestCase):
         """Test listing all orders"""
         # Create a set of orders for testing
         orders = []
-        for _ in range(5):
+        for i in range(5):
             order = self._create_orders(1)[0]
             orders.append(order)
 
@@ -797,7 +797,6 @@ class TestYourResourceService(TestCase):
 
     def test_list_orders_by_status(self):
         """Test listing orders filtered by status"""
-        # from service.models import OrderStatus
 
         # Create several orders (the _create_orders method should create them with default statuses)
         orders = []
@@ -842,7 +841,7 @@ class TestYourResourceService(TestCase):
         """Test listing orders with pagination"""
         # Create 15 orders to test pagination
         orders = []
-        for _ in range(15):
+        for i in range(15):
             order = self._create_orders(1)[0]
             orders.append(order)
 
@@ -869,7 +868,29 @@ class TestYourResourceService(TestCase):
         self.assertEqual(data["metadata"]["page_size"], 5)
         self.assertEqual(data["metadata"]["total_pages"], 3)
 
-    # TEST CASES FOR LIST ITEMS IN AN ORDER ############
+    def test_list_items_order_not_found(self):
+        """It should return 404 Not Found when attempting to list items for a non-existent order"""
+        # Generate an order ID that shouldn't exist
+        non_existent_order_id = 0
+
+        # Make sure this order ID doesn't actually exist
+        order = Order.find(non_existent_order_id)
+        self.assertIsNone(order)
+
+        # Send a request to list items for this non-existent order
+        response = self.client.get(f"/orders/{non_existent_order_id}/items")
+
+        # Check that we get a 404 response
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+        # Verify the error message
+        data = response.get_json()
+        self.assertIn("message", data)
+        self.assertIn(
+            f"Order with id '{non_existent_order_id}' was not found", data["message"]
+        )
+
+    # TEST CASES FOR LIST ITEMS IN AN ORDER ###########
     def test_list_items(self):
         """It should List all Items in an Order"""
         # Create an order first
