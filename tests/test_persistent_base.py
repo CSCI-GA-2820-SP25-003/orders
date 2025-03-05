@@ -32,7 +32,7 @@ def persistent_instance():
     return instance
 
 
-def test_update_raises_exception(persistent_instance):
+def test_update_raises_exception(persistent_instance_fixture):
     """Test that the update method raises an exception when commit fails"""
     # Patch db.session.commit to raise an exception
     with patch(
@@ -42,7 +42,7 @@ def test_update_raises_exception(persistent_instance):
         with patch("service.models.db.session.rollback") as mock_rollback:
             # Check if DataValidationError is raised and capture exception info
             with pytest.raises(DataValidationError) as excinfo:
-                persistent_instance.update()
+                persistent_instance_fixture.update()
 
             # Ensure that rollback was called once after the exception
             mock_rollback.assert_called_once()
