@@ -416,6 +416,7 @@ class TestYourResourceService(TestCase):
 
     # TEST CASES FOR READING AN ORDER ################
     def test_read_order(self):
+        """Read an order that exists using its id"""
         orders = self._create_orders(1)
         test_order = orders[0]
 
@@ -425,6 +426,7 @@ class TestYourResourceService(TestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_read_order_doesnt_exist(self):
+        """Read an order that doesn't exist"""
         orders = self._create_orders(1)
         test_order = orders[0]
 
@@ -434,7 +436,7 @@ class TestYourResourceService(TestCase):
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_read_order_invalid_id(self):
-        # orders = self._create_orders(1)
+        """Read an order using an invalid id"""
 
         response = self.client.get(
             f"/orders/{'invalid id'}", content_type="application/json"
@@ -443,6 +445,7 @@ class TestYourResourceService(TestCase):
 
     # TEST CASES FOR READING ITEM IN AN ORDER ################
     def test_read_item_in_order(self):
+        """Read an item that exists in an order"""
         orders = self._create_orders(1)
         test_order = orders[0]
         item = ItemFactory()
@@ -461,6 +464,7 @@ class TestYourResourceService(TestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def read_item_in_order_doesnt_exist(self):
+        """Read an item that does not exist in an order"""
         orders = self._create_orders(1)
         test_order = orders[0]
         item = ItemFactory()
