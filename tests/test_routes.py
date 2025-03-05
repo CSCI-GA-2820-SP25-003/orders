@@ -776,7 +776,7 @@ class TestYourResourceService(TestCase):
         """Test listing all orders"""
         # Create a set of orders for testing
         orders = []
-        for i in range(5):
+        for _ in range(5):
             order = self._create_orders(1)[0]
             orders.append(order)
 
@@ -841,7 +841,7 @@ class TestYourResourceService(TestCase):
         """Test listing orders with pagination"""
         # Create 15 orders to test pagination
         orders = []
-        for i in range(15):
+        for _ in range(15):
             order = self._create_orders(1)[0]
             orders.append(order)
 
