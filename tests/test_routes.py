@@ -100,7 +100,7 @@ class TestYourResourceService(TestCase):
 
     ################ TEST CASES FOR CREATING ORDERS ########################
     def test_create_order(self):
-        """It should Create an Order"""
+        """Create an Order"""
         order = OrderFactory()
         response = self.client.post(
             "/orders", json=order.serialize(), content_type="application/json"
@@ -111,7 +111,7 @@ class TestYourResourceService(TestCase):
         self.assertEqual(json["status"], order.status.name)
 
     def test_create_order_with_invalid_data(self):
-        """It should not Create an Order with invalid data"""
+        """Not Create an Order with invalid data"""
         invalid_order = {"customer_name": "", "status": "INVALID"}
         response = self.client.post(
             "/orders", json=invalid_order, content_type="application/json"
@@ -119,7 +119,7 @@ class TestYourResourceService(TestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_create_order_with_missing_data(self):
-        """It should not Create an Order with missing customer_name"""
+        """Not Create an Order with missing customer_name"""
         missing_data_order = {"status": "INVALID"}
         response = self.client.post(
             "/orders", json=missing_data_order, content_type="application/json"
@@ -127,7 +127,7 @@ class TestYourResourceService(TestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_create_order_with_extra_data(self):
-        """It should Create an Order with extra data"""
+        """Create an Order with extra data"""
         order = OrderFactory()
         extra_data_order = order.serialize()
         extra_data_order["extra_field"] = "extra_value"
@@ -139,62 +139,6 @@ class TestYourResourceService(TestCase):
         self.assertNotIn("extra_field", json)
         self.assertEqual(json["customer_name"], order.customer_name)
         self.assertEqual(json["status"], order.status.name)
-
-    ################ TEST CASES FOR CREATING ITEMS ########################
-    def test_create_item(self):
-        """It should Create an Item for an Order"""
-        order = self._create_orders(1)[0]
-        item = ItemFactory()
-        response = self.client.post(
-            f"/orders/{order.id}/items",
-            json=item.serialize(),
-            content_type="application/json",
-        )
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        json = response.get_json()
-        self.assertEqual(json["name"], item.name)
-        self.assertEqual(json["price"], item.price)
-        self.assertEqual(json["quantity"], item.quantity)
-
-    def test_create_item_with_invalid_data(self):
-        """It should not Create an Item with invalid data"""
-        order = self._create_orders(1)[0]
-        invalid_item = {"name": "", "price": -1, "stock": -1}
-        response = self.client.post(
-            f"/orders/{order.id}/items",
-            json=invalid_item,
-            content_type="application/json",
-        )
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-
-    def test_create_item_with_missing_data(self):
-        """It should not Create an Item with missing data"""
-        order = self._create_orders(1)[0]
-        missing_data_item = {"price": 10.0, "stock": 5}
-        response = self.client.post(
-            f"/orders/{order.id}/items",
-            json=missing_data_item,
-            content_type="application/json",
-        )
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-
-    def test_create_item_with_extra_data(self):
-        """It should Create an Item with extra data"""
-        order = self._create_orders(1)[0]
-        item = ItemFactory()
-        extra_data_item = item.serialize()
-        extra_data_item["extra_field"] = "extra_value"
-        response = self.client.post(
-            f"/orders/{order.id}/items",
-            json=extra_data_item,
-            content_type="application/json",
-        )
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        json = response.get_json()
-        self.assertNotIn("extra_field", json)
-        self.assertEqual(json["name"], item.name)
-        self.assertEqual(json["price"], item.price)
-        self.assertEqual(json["quantity"], item.quantity)
 
     ################ TEST CASES FOR DELETING ORDERS ########################
     def test_delete_order(self):
@@ -221,6 +165,197 @@ class TestYourResourceService(TestCase):
         # delete an order with no order id
         resp = self.client.delete("/orders/0")
         self.assertEqual(resp.status_code, status.HTTP_404_NOT_FOUND)
+
+    ################ TEST CASES FOR UPDATE ORDERS ########################
+
+    def test_update_order(self):
+        """Update an existing order"""
+        # create an order to update
+        order = self._create_orders(1)[0]
+
+        # update the order
+        data = order.serialize()
+        data["customer_name"] = "Updated Customer"
+        data["status"] = "SHIPPED"
+
+        # send the update request, update the order
+        resp = self.client.put(
+            f"/orders/{order.id}", json=data, content_type="application/json"
+        )
+
+        # assert that the update was successful
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+
+        # check if the data was actually updated
+        updated_order = resp.get_json()
+        self.assertEqual(updated_order["customer_name"], "Updated Customer")
+        self.assertEqual(updated_order["status"], "SHIPPED")
+
+        # verify through a GET request to test whether the updated version is in db now
+        resp = self.client.get(f"/orders/{order.id}")
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+
+        get_order = resp.get_json()
+        self.assertEqual(get_order["customer_name"], "Updated Customer")
+        self.assertEqual(get_order["status"], "SHIPPED")
+
+    def test_update_order_not_found(self):
+        """Return 404 when updating a non-existing order"""
+        # create an order object but don't persist it (just for the data)
+        # we need to work on the factories.py to get fuzzy objects in test cases
+        order = OrderFactory()
+
+        # try to update an order that doesn't exist (use id 0 which shouldn't exist since the sql starts from 1)
+        resp = self.client.put(
+            "/orders/0", json=order.serialize(), content_type="application/json"
+        )
+
+        # assert that update attempt returned NOT FOUND
+        self.assertEqual(resp.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_update_order_with_invalid_data(self):
+        """Not update an order when the data is invalid"""
+        # create an order to update
+        order = self._create_orders(1)[0]
+
+        # create update data with invalid status
+        invalid_data = order.serialize()
+        # this is not a valid OrderStatus
+        invalid_data["status"] = "INVALID_STATUS"
+
+        # send update request with invalid data
+        resp = self.client.put(
+            f"/orders/{order.id}", json=invalid_data, content_type="application/json"
+        )
+
+        # the API should return 400 Bad Request for invalid data
+        self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
+
+        # verify the order was not updated by getting it
+        resp = self.client.get(f"/orders/{order.id}")
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+
+        # the original status should remain unchanged
+        get_order = resp.get_json()
+        self.assertNotEqual(get_order["status"], "INVALID_STATUS")
+
+    def test_update_order_with_missing_data(self):
+        """Not update an order when required data is missing"""
+        # create an order to update
+        order = self._create_orders(1)[0]
+
+        # create update data with missing required field (customer_name)
+        incomplete_data = {
+            "status": "SHIPPED"
+            # missing customer_name which is required
+        }
+
+        # send update request with missing data
+        resp = self.client.put(
+            f"/orders/{order.id}", json=incomplete_data, content_type="application/json"
+        )
+
+        # the API should return 400 Bad Request for missing data
+        self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
+
+        # verify the order was not updated by getting it
+        resp = self.client.get(f"/orders/{order.id}")
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+
+        # the original customer_name should remain unchanged
+        get_order = resp.get_json()
+        self.assertEqual(get_order["customer_name"], order.customer_name)
+
+    def test_update_order_with_extra_data(self):
+        """Ignore extra data when updating an order"""
+        # create an order to update
+        order = self._create_orders(1)[0]
+
+        # prepare update data with valid fields plus an extra field
+        update_data = order.serialize()
+        update_data["customer_name"] = "Updated Customer"
+        update_data["status"] = "SHIPPED"
+        update_data["extra_field"] = "This field doesn't exist in the model"
+
+        # send update request with extra data
+        resp = self.client.put(
+            f"/orders/{order.id}", json=update_data, content_type="application/json"
+        )
+
+        # the update should succeed, ignoring the extra field
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+
+        # verify the response contains updated data but not the extra field
+        updated_order = resp.get_json()
+        self.assertEqual(updated_order["customer_name"], "Updated Customer")
+        self.assertEqual(updated_order["status"], "SHIPPED")
+        self.assertNotIn("extra_field", updated_order)
+
+        # verify through a GET request
+        resp = self.client.get(f"/orders/{order.id}")
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+
+        get_order = resp.get_json()
+        self.assertEqual(get_order["customer_name"], "Updated Customer")
+        self.assertEqual(get_order["status"], "SHIPPED")
+        self.assertNotIn("extra_field", get_order)
+
+    ################ TEST CASES FOR CREATING ITEMS ########################
+
+    def test_create_item(self):
+        """Create an Item for an Order"""
+        order = self._create_orders(1)[0]
+        item = ItemFactory()
+        response = self.client.post(
+            f"/orders/{order.id}/items",
+            json=item.serialize(),
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        json = response.get_json()
+        self.assertEqual(json["name"], item.name)
+        self.assertEqual(json["price"], item.price)
+        self.assertEqual(json["quantity"], item.quantity)
+
+    def test_create_item_with_invalid_data(self):
+        """Not create an Item with invalid data"""
+        order = self._create_orders(1)[0]
+        invalid_item = {"name": "", "price": -1, "stock": -1}
+        response = self.client.post(
+            f"/orders/{order.id}/items",
+            json=invalid_item,
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_create_item_with_missing_data(self):
+        """Not create an Item with missing data"""
+        order = self._create_orders(1)[0]
+        missing_data_item = {"price": 10.0, "stock": 5}
+        response = self.client.post(
+            f"/orders/{order.id}/items",
+            json=missing_data_item,
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_create_item_with_extra_data(self):
+        """Create an Item with extra data"""
+        order = self._create_orders(1)[0]
+        item = ItemFactory()
+        extra_data_item = item.serialize()
+        extra_data_item["extra_field"] = "extra_value"
+        response = self.client.post(
+            f"/orders/{order.id}/items",
+            json=extra_data_item,
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        json = response.get_json()
+        self.assertNotIn("extra_field", json)
+        self.assertEqual(json["name"], item.name)
+        self.assertEqual(json["price"], item.price)
+        self.assertEqual(json["quantity"], item.quantity)
 
     ################ TEST CASES FOR DELETING ITEM ########################
     def test_delete_item(self):
@@ -279,6 +414,7 @@ class TestYourResourceService(TestCase):
         response = self.client.delete(f"/orders/{order.id}/items/0")
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
+<<<<<<< HEAD
     # TEST CASES FOR READING AN ORDER
     def test_read_order(self):
         orders = self._create_orders(1)
@@ -305,3 +441,295 @@ class TestYourResourceService(TestCase):
             f"/orders/{'invalid id'}", content_type="application/json"
         )
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+=======
+    ################ TEST CASES FOR UPDATE ITEMS ########################
+
+    def test_update_item_existing_order_existing_item(self):
+        """Update an item with existing order id and existing item id"""
+        # create an order
+        order = self._create_orders(1)[0]
+
+        # create an item for the order
+        item = ItemFactory()
+        response = self.client.post(
+            f"/orders/{order.id}/items",
+            json=item.serialize(),
+            content_type="application/json",
+        )
+        # created item should return 201
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        # get the created item's id
+        item_data = response.get_json()
+        item_id = item_data["id"]
+
+        # update the item data
+        update_data = item_data.copy()
+        update_data["name"] = "Updated Item Name"
+        update_data["price"] = 99.99
+        update_data["quantity"] = 10
+
+        # dend update request to update the item
+        response = self.client.put(
+            f"/orders/{order.id}/items/{item_id}",
+            json=update_data,
+            content_type="application/json",
+        )
+
+        # assert the update was successful
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        # verify the response data contains updated values
+        updated_item = response.get_json()
+        self.assertEqual(updated_item["name"], "Updated Item Name")
+        self.assertEqual(updated_item["price"], 99.99)
+        self.assertEqual(updated_item["quantity"], 10)
+
+        # verify through a GET request to check if the updated version is in db now
+        response = self.client.get(f"/orders/{order.id}/items/{item_id}")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        get_item = response.get_json()
+        self.assertEqual(get_item["name"], "Updated Item Name")
+        self.assertEqual(get_item["price"], 99.99)
+        self.assertEqual(get_item["quantity"], 10)
+
+    def test_update_item_nonexisting_order_existing_item(self):
+        """Return 404 when updating an item with non-existing order id"""
+        # create an order and item
+        order = self._create_orders(1)[0]
+
+        # create an item for the order
+        item = ItemFactory()
+        response = self.client.post(
+            f"/orders/{order.id}/items",
+            json=item.serialize(),
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        # get the created item's id
+        item_data = response.get_json()
+        item_id = item_data["id"]
+
+        # try to update the item with a non-existing order id
+        # assuming 0 is not a valid order id since the sql starts from 1
+        non_existing_order_id = 0
+
+        response = self.client.put(
+            f"/orders/{non_existing_order_id}/items/{item_id}",
+            json=item_data,
+            content_type="application/json",
+        )
+
+        # assert that the update attempt returns 404
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_update_item_existing_order_nonexisting_item(self):
+        """Return 404 when updating a non-existing item for an existing order"""
+        # create an order
+        order = self._create_orders(1)[0]
+
+        # create fake item data
+        item = ItemFactory()
+
+        # try to update a non-existing item
+        # assuming 0 is not a valid item id since the sql starts from 1
+        non_existing_item_id = 0
+
+        response = self.client.put(
+            f"/orders/{order.id}/items/{non_existing_item_id}",
+            json=item.serialize(),
+            content_type="application/json",
+        )
+
+        # assert that the update attempt returns 404
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_update_item_nonexisting_order_nonexisting_item(self):
+        """Return 404 when updating with both non-existing order and item ids"""
+        # create fake item data
+        item = ItemFactory()
+
+        # try to update with non-existing order and item ids
+        # assuming 0 is not a valid order id since the sql starts from 1
+        non_existing_order_id = 0
+        non_existing_item_id = 0
+
+        response = self.client.put(
+            f"/orders/{non_existing_order_id}/items/{non_existing_item_id}",
+            json=item.serialize(),
+            content_type="application/json",
+        )
+
+        # assert that the update attempt returns 404
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_update_item_wrong_order_item_combination(self):
+        """Return 404 when item exists but not in this order (not correct order-item combination)"""
+        # Create two orders
+        orders = self._create_orders(2)
+        order1 = orders[0]
+        order2 = orders[1]
+
+        # create an item for order1
+        item_1 = ItemFactory()
+        response = self.client.post(
+            f"/orders/{order1.id}/items",
+            json=item_1.serialize(),
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        # get the created item's id
+        item_1_data = response.get_json()
+        item_1_id = item_1_data["id"]
+
+        # create an item for order2
+        item_2 = ItemFactory()
+        response = self.client.post(
+            f"/orders/{order2.id}/items",
+            json=item_2.serialize(),
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        # try to update the item through order2
+        response = self.client.put(
+            f"/orders/{order2.id}/items/{item_1_id}",
+            json=item_1_data,
+            content_type="application/json",
+        )
+
+        # assert that the update attempt returns 404 since the item
+        # exists but doesn't belong to order2
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_update_item_with_invalid_input(self):
+        """Not update an item when the data is invalid"""
+        # create an order
+        order = self._create_orders(1)[0]
+
+        # create an item for the order
+        item = ItemFactory()
+        response = self.client.post(
+            f"/orders/{order.id}/items",
+            json=item.serialize(),
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        # get the created item's id
+        item_data = response.get_json()
+        item_id = item_data["id"]
+
+        # update with invalid price (string instead of number)
+        item_data["price"] = "not-a-price"
+
+        # send update request with invalid data
+        response = self.client.put(
+            f"/orders/{order.id}/items/{item_id}",
+            json=item_data,
+            content_type="application/json",
+        )
+
+        # the API should return 400 Bad Request for invalid data
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+        # verify the item was not updated
+        response = self.client.get(f"/orders/{order.id}/items/{item_id}")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        get_item = response.get_json()
+        self.assertNotEqual(get_item["price"], "not-a-price")
+        self.assertEqual(get_item["price"], item.price)
+
+    def test_update_item_with_missing_input(self):
+        """Not update an item when required data is missing"""
+        # create an order
+        order = self._create_orders(1)[0]
+
+        # create an item for the order
+        item = ItemFactory()
+        response = self.client.post(
+            f"/orders/{order.id}/items",
+            json=item.serialize(),
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        # get the created item's id
+        item_data = response.get_json()
+        item_id = item_data["id"]
+
+        # create incomplete data (missing name field)
+        incomplete_data = {
+            "price": 99.99,
+            "quantity": 5,
+            # missing name which is required
+        }
+
+        # send update request with missing data
+        response = self.client.put(
+            f"/orders/{order.id}/items/{item_id}",
+            json=incomplete_data,
+            content_type="application/json",
+        )
+
+        # the API should return 400 Bad Request for missing data
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+        # verify the item was not updated
+        response = self.client.get(f"/orders/{order.id}/items/{item_id}")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        get_item = response.get_json()
+        # name should remain unchanged
+        self.assertEqual(get_item["name"], item.name)
+
+    def test_update_item_with_extra_input(self):
+        """Ignore extra data when updating an item"""
+        # create an order
+        order = self._create_orders(1)[0]
+
+        # create an item for the order
+        item = ItemFactory()
+        response = self.client.post(
+            f"/orders/{order.id}/items",
+            json=item.serialize(),
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        # get the created item's id
+        item_data = response.get_json()
+        item_id = item_data["id"]
+
+        # prepare update data with valid fields plus an extra field
+        update_data = item_data.copy()
+        update_data["name"] = "Updated Item Name"
+        update_data["extra_field"] = "This field doesn't exist in the model"
+
+        # send update request with extra data
+        response = self.client.put(
+            f"/orders/{order.id}/items/{item_id}",
+            json=update_data,
+            content_type="application/json",
+        )
+
+        # the update should succeed, ignoring the extra field
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        # verify the response contains updated data but not the extra field
+        updated_item = response.get_json()
+        self.assertEqual(updated_item["name"], "Updated Item Name")
+        self.assertNotIn("extra_field", updated_item)
+
+        # verify through a GET request
+        response = self.client.get(f"/orders/{order.id}/items/{item_id}")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        get_item = response.get_json()
+        self.assertEqual(get_item["name"], "Updated Item Name")
+        self.assertNotIn("extra_field", get_item)
+>>>>>>> 75034ecf28391e2ab78b187a07f969a0f228555e

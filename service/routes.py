@@ -216,7 +216,7 @@ curl -X POST "http://127.0.0.1:8080/orders/1/items" \
 -d '{
     "name": "Laptop",
     "price": 1200.99,
-    "stock": 10
+    "quantity": 10
     }'
 """
 
