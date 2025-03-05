@@ -19,8 +19,8 @@ Error Handlers for Flask
 """
 
 import logging
-from wsgi import app
 from unittest import TestCase
+from wsgi import app
 from service.common import status
 from service.models import DataValidationError
 
