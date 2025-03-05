@@ -1,8 +1,14 @@
+"""Order Model
+
+This module contains the Order model.
+"""
+
 import logging
 from datetime import datetime, timezone
+from enum import Enum
 from .persistent_base import db, PersistentBase, DataValidationError
 from .items import Item
-from enum import Enum
+
 
 logger = logging.getLogger("flask.app")
 
@@ -47,12 +53,15 @@ class Order(db.Model, PersistentBase):
     )
     items = db.relationship("Item", backref="order", passive_deletes=True)
 
+    """return a string representation of the order"""
+
     def __repr__(self):
         return (
             f"<Order id=[{self.id}] customer={self.customer_name} status={self.status}>"
         )
 
     def serialize(self) -> dict:
+        """Serialize an Order into a dictionary"""
         if not isinstance(self.status, OrderStatus):
             raise DataValidationError(
                 f"Invalid status value '{self.status}' not in OrderStatus Enum"
@@ -68,6 +77,7 @@ class Order(db.Model, PersistentBase):
         }
 
     def deserialize(self, data: dict) -> None:
+        """Deserialize an Order from a dictionary"""
         try:
             self.customer_name = data["customer_name"]
 
