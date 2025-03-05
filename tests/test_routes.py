@@ -414,6 +414,67 @@ class TestYourResourceService(TestCase):
         response = self.client.delete(f"/orders/{order.id}/items/0")
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
+    ################ TEST CASES FOR READING AN ORDER ################
+    def test_read_order(self):
+        orders = self._create_orders(1)
+        test_order = orders[0]
+
+        response = self.client.get(
+            f"/orders/{test_order.id}", content_type="application/json"
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_read_order_doesnt_exist(self):
+        orders = self._create_orders(1)
+        test_order = orders[0]
+
+        response = self.client.get(
+            f"/orders/{test_order.id + 1}", content_type="application/json"
+        )
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_read_order_invalid_id(self):
+        orders = self._create_orders(1)
+
+        response = self.client.get(
+            f"/orders/{'invalid id'}", content_type="application/json"
+        )
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    ################ TEST CASES FOR READING ITEM IN AN ORDER ################
+    def test_read_item_in_order(self):
+        orders = self._create_orders(1)
+        test_order = orders[0]
+        item = ItemFactory()
+        item.order_id = test_order.id
+
+        response = self.client.post(
+            f"/orders/{test_order.id}/items",
+            json=item.serialize(),
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        item_id = response.get_json()["id"]
+
+        response = self.client.get(f"/orders/{test_order.id}/items/{item_id}")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def read_item_in_order_doesnt_exist(self):
+        orders = self._create_orders(1)
+        test_order = orders[0]
+        item = ItemFactory()
+
+        response = self.client.post(
+            f"/orders/{test_order.id}/items",
+            json=item.serialize(),
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        response = self.client.get(f"/orders/{test_order.id}/items/{item.id + 1}")
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
     ################ TEST CASES FOR UPDATE ITEMS ########################
 
     def test_update_item_existing_order_existing_item(self):
