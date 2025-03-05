@@ -69,22 +69,31 @@ class TestOrderModel(TestCase):
         """It should create an Order"""
         faker = OrderFactory()
 
-        order = Order(
-            id=faker.id,
-            customer_name=faker.customer_name,
-            status=faker.status,
-            created_at=faker.created_at.isoformat(),
-            updated_at=faker.updated_at.isoformat(),
-            items=faker.items,
-        )
+        # create the order without constructor parameters
+        order = Order()
+
+        # then set the attributes individually
+        order.id = faker.id
+        order.customer_name = faker.customer_name
+        order.status = faker.status
+        order.created_at = faker.created_at
+        order.updated_at = faker.updated_at
+
+        # for items, you need to set them properly
+        for item in faker.items:
+            order.items.append(item)
 
         # assert the order
         self.assertIsNotNone(order)
         self.assertEqual(order.id, faker.id)
         self.assertEqual(order.customer_name, faker.customer_name)
         self.assertEqual(order.status, faker.status)
-        self.assertEqual(order.created_at, faker.created_at.strftime("%Y-%m-%d"))
-        self.assertEqual(order.updated_at, faker.updated_at.strftime("%Y-%m-%d"))
+        self.assertEqual(
+            order.created_at.strftime("%Y-%m-%d"), faker.created_at.strftime("%Y-%m-%d")
+        )
+        self.assertEqual(
+            order.updated_at.strftime("%Y-%m-%d"), faker.updated_at.strftime("%Y-%m-%d")
+        )
         self.assertEqual(len(order.items), len(faker.items))
 
     def test_list_all_orders(self):
@@ -164,10 +173,10 @@ class TestOrderModel(TestCase):
         # create dummy order with no data
         order = Order()
 
-        """Key Error"""
+        # """Key Error"""
         self.assertRaises(DataValidationError, order.deserialize, {})
 
-        """Type Error"""
+        # """Type Error"""
         self.assertRaises(DataValidationError, order.deserialize, [])
 
     def test_order_no_name(self):
