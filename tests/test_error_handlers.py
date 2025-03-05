@@ -22,9 +22,7 @@ import logging
 from wsgi import app
 from unittest import TestCase
 from service.common import status
-from service.models import Order, Item
 from service.models import DataValidationError
-from tests.factories import OrderFactory, ItemFactory
 
 
 class ErrorHandlerTester(TestCase):
@@ -42,7 +40,7 @@ class ErrorHandlerTester(TestCase):
         """Runs before each test"""
         self.client = app.test_client()
 
-    ####### TEST CASES #######
+    # TEST CASES #######
 
     def test_data_validation_error(self):
         """Test handling of DataValidationError"""

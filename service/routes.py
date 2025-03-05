@@ -23,7 +23,7 @@ and Delete YourResourceModel
 
 from flask import jsonify, request, url_for, abort
 from flask import current_app as app  # Import Flask application
-from service.models import Item, Order, OrderStatus
+from service.models import Item, Order
 from service.common import status  # HTTP Status Codes
 
 
@@ -55,7 +55,11 @@ def index():
 ######################################################################
 
 
-######### L I S T   A L L   O R D E R S #########
+# L I S T   A L L   O R D E R S #########
+"""
+curl -X GET "http://127.0.0.1:8080/orders"
+"""
+
 @app.route("/orders", methods=["GET"])
 def list_orders():
     """
@@ -126,7 +130,7 @@ def list_orders():
     return jsonify(response), status.HTTP_200_OK
 
 
-######### C R E A T E   A   N E W   O R D E R #########
+# C R E A T E   A   N E W   O R D E R #########
 """
 curl -X POST "http://127.0.0.1:8080/orders" \
 -H "Content-Type: application/json" \
@@ -155,7 +159,7 @@ def create_order():
     return jsonify(message), status.HTTP_201_CREATED, {"location": location_url}
 
 
-######### R E T R E I V E   A N     O R D E R   U S I N G   O R D E R   I D #########
+# R E T R E I V E   A N     O R D E R   U S I N G   O R D E R   I D #########
 """
 curl -X GET "http://127.0.0.1:8080/orders/1"
 """
@@ -206,7 +210,7 @@ def update_order(order_id):
     return jsonify(order.serialize()), status.HTTP_200_OK
 
 
-######### D E L E T E   A N     O R D E R    U S I N G      O R D E R   I D #########
+# D E L E T E   A N     O R D E R    U S I N G      O R D E R   I D #########
 @app.route("/orders/<int:order_id>", methods=["DELETE"])
 def delete_order(order_id):
     """Delete order using the order id"""
@@ -229,7 +233,7 @@ def delete_order(order_id):
 ######################################################################
 
 
-#########   L I S T     I T E M S     F R O M     A N   E X I S T I N G     O R D E R   #########
+#   L I S T     I T E M S     F R O M     A N   E X I S T I N G     O R D E R   #########
 # curl -X GET "http://127.0.0.1:8080/orders/1/items"
 @app.route("/orders/<int:order_id>/items", methods=["GET"])
 def list_items(order_id):
@@ -300,7 +304,7 @@ def create_item(order_id):
     return jsonify(message), status.HTTP_201_CREATED, {"Location": location_url}
 
 
-#########  R E T R E I V E    A N     I T E M     F R O M     A N      E X I S T I N G     O R D E R   #########
+#  R E T R E I V E    A N     I T E M     F R O M     A N      E X I S T I N G     O R D E R   #########
 """
 curl -X GET "http://127.0.0.1:8080/orders/1/items/1"
 """
@@ -326,7 +330,7 @@ def get_item(order_id, item_id):
     return jsonify(item.serialize()), status.HTTP_200_OK
 
 
-##########   U P D A T E     A N     I T E M     F R O M     A N     E X I S T I N G     O R D E R   #########
+#   U P D A T E     A N     I T E M     F R O M     A N     E X I S T I N G     O R D E R   #########
 """
 curl -X PUT "http://127.0.0.1:8080/orders/1/items/2" \
      -H "Content-Type: application/json" \
@@ -371,7 +375,7 @@ def update_item(order_id, item_id):
     return jsonify(item.serialize()), status.HTTP_200_OK
 
 
-#########   D E L E T E     A N     I T E M     F R O M     A N     E X I S T I N G     O R D E R   #########
+#   D E L E T E     A N     I T E M     F R O M     A N     E X I S T I N G     O R D E R   #########
 @app.route("/orders/<int:order_id>/items/<int:item_id>", methods=["DELETE"])
 def delete_item_from_order(order_id, item_id):
     """Delete an item from a given order"""
@@ -398,7 +402,7 @@ def delete_item_from_order(order_id, item_id):
     return "", status.HTTP_204_NO_CONTENT
 
 
-########################### R O U T E S     C O M P L E T E ################################
+# R O U T E S     C O M P L E T E ################################
 
 
 def check_content_type(content_type):
