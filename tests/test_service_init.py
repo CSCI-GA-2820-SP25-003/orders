@@ -1,8 +1,8 @@
-import pytest
-from unittest.mock import patch
-from service import create_app
-
 """Unit tests for service initialization."""
+
+from unittest.mock import patch
+import pytest
+from service import create_app
 
 
 def test_create_app_exception_handling(capfd):
