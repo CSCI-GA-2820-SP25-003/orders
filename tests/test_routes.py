@@ -416,6 +416,7 @@ class TestYourResourceService(TestCase):
 
     # TEST CASES FOR READING AN ORDER ################
     def test_read_order(self):
+        """Read a single order by its ID"""
         orders = self._create_orders(1)
         test_order = orders[0]
 
@@ -425,6 +426,7 @@ class TestYourResourceService(TestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_read_order_doesnt_exist(self):
+        """Read a single order by its ID that doesn't exist return 404"""
         orders = self._create_orders(1)
         test_order = orders[0]
 
@@ -434,6 +436,7 @@ class TestYourResourceService(TestCase):
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_read_order_invalid_id(self):
+        """Read a single order by its ID that is invalid return 404"""
         # orders = self._create_orders(1)
 
         response = self.client.get(
@@ -443,6 +446,7 @@ class TestYourResourceService(TestCase):
 
     # TEST CASES FOR READING ITEM IN AN ORDER ################
     def test_read_item_in_order(self):
+        """Read a single item from an order by its ID"""
         orders = self._create_orders(1)
         test_order = orders[0]
         item = ItemFactory()
@@ -461,6 +465,7 @@ class TestYourResourceService(TestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def read_item_in_order_doesnt_exist(self):
+        """Read a single item from an order by its ID that doesn't exist return 404"""
         orders = self._create_orders(1)
         test_order = orders[0]
         item = ItemFactory()
@@ -771,7 +776,7 @@ class TestYourResourceService(TestCase):
         """Test listing all orders"""
         # Create a set of orders for testing
         orders = []
-        for i in range(5):
+        for _ in range(5):
             order = self._create_orders(1)[0]
             orders.append(order)
 
@@ -837,7 +842,7 @@ class TestYourResourceService(TestCase):
         """Test listing orders with pagination"""
         # Create 15 orders to test pagination
         orders = []
-        for i in range(15):
+        for _ in range(15):
             order = self._create_orders(1)[0]
             orders.append(order)
 
