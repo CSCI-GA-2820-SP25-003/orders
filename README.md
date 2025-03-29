@@ -70,6 +70,7 @@ make run
 
 ## Commands
 ### Index Page
+<<<<<<< HEAD
 
 To access index page, in browser, go to the url:
 ```url
@@ -78,10 +79,20 @@ http://localhost:8080/
 
 ### Orders
 #### Create an Order
+=======
+
+To access index page, in browser, go to the url:
+```url
+http://localhost:8080/
+```
+
+### Create an Order
+>>>>>>> 02ee72d (commit)
 
 ```bash
 curl -X POST "http://127.0.0.1:8080/orders" \
 -H "Content-Type: application/json" \
+<<<<<<< HEAD
 -d '{"customer_name": "<name>", "status": "<status>"}'
 ```
 
@@ -100,6 +111,35 @@ curl -X GET "http://127.0.0.1:8080/orders?status=<status>"
 ```bash
 curl -X GET "http://127.0.0.1:8080/orders/<order_id>"
 ```
+=======
+-d '{"customer_name": "Alice", "status": "PENDING"}'
+```
+This will create an order with customer name "Alice" and status of PENDING.
+
+### List orders
+List all orders till now:
+```bash
+curl -X GET "http://127.0.0.1:8080/orders"
+```
+
+List all orders corresponding to the name provided:
+```bash
+curl -X GET "http://127.0.0.1:8080/orders?name=<name>"
+```
+
+### Create an Item
+
+```bash
+curl -X POST "http://127.0.0.1:8080/orders/<order_id>/items" \
+-H "Content-Type: application/json" \
+-d '{
+    "name": "Laptop",
+    "price": 1200.99,
+    "quantity": 10
+    }'
+```
+This will create an item with name "Laptop", price of '1200.99', and quantity of '10' associated with the given order id.
+>>>>>>> 02ee72d (commit)
 
 #### Update Orders
 ```bash
