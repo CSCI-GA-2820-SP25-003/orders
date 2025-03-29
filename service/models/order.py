@@ -114,7 +114,27 @@ class Order(db.Model, PersistentBase):
         return self
 
     @classmethod
-    def find_by_name(cls, customer_name):
-        """Returns all Orders with the given customer name"""
-        logger.info("Processing customer name query for %s ...", customer_name)
-        return cls.query.filter(cls.customer_name == customer_name).all()
+    def find_by_filters(cls, customer_name=None, order_status=None, order_id=None):
+        """
+        Returns all Orders matching the given filters.
+
+        Args:
+            customer_name (str, optional): Name of the customer whose orders you want.
+            order_status (str, optional): Status of the orders to filter.
+            order_id (str, optional): Order ID of the orders to filter.
+
+        Returns:
+            List of matching Order objects.
+        """
+        query = cls.query
+        if customer_name:
+            query = query.filter(cls.customer_name == customer_name)
+        if order_status:
+            order_status = order_status.upper()
+            if order_status in OrderStatus.list():
+                query = query.filter(cls.status == OrderStatus[order_status])
+            else:
+                query = query.filter(False)
+        if order_id:
+            query = query.filter(cls.id == order_id)
+        return query.all()

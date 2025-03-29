@@ -56,7 +56,7 @@ def index():
 
 
 ######################################################################
-#  LIST ALL ORDERS
+#  LIST ORDERS BASED ON QUERY
 ######################################################################
 @app.route("/orders", methods=["GET"])
 def list_orders():
@@ -67,38 +67,16 @@ def list_orders():
     app.logger.info("Request to list Orders...")
 
     # Get query parameters
+    customer_name = request.args.get("customer_name")
+    order_id = request.args.get("order_id", type=int)
     status_val = request.args.get("status")
     page = request.args.get("page", 1, type=int)
     page_size = request.args.get("page_size", 10, type=int)
 
     # Get all orders
-    orders = Order.all()
-    app.logger.info(f"Found {len(orders)} total orders")
-
-    # Filter orders manually to ensure correct status comparison
-    filtered_orders = []
-
-    for order in orders:
-        # Only filter by status if a status filter was provided
-        if status_val:
-            # Get the order's status value as a string for comparison
-            order_status = order.status
-            order_status_val = (
-                order_status.value
-                if hasattr(order_status, "value")
-                else str(order_status)
-            )
-
-            app.logger.info(
-                f"Order {order.id}: status={order_status_val}, requested={status_val}"
-            )
-
-            # Skip this order if status doesn't match
-            if order_status_val != status_val:
-                continue
-
-        # If we get here, add the order to our filtered list
-        filtered_orders.append(order)
+    filtered_orders = Order.find_by_filters(
+        customer_name=customer_name, order_status=status_val, order_id=order_id
+    )
 
     app.logger.info(f"After filtering: {len(filtered_orders)} orders match criteria")
 
