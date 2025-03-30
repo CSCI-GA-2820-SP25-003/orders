@@ -23,7 +23,7 @@ and Delete YourResourceModel
 
 from flask import jsonify, request, url_for, abort
 from flask import current_app as app  # Import Flask application
-from service.models import Item, Order
+from service.models import Item, Order, OrderStatus
 from service.common import status  # HTTP Status Codes
 
 
@@ -187,6 +187,65 @@ def delete_order(order_id):
         order.delete()
 
     return "", status.HTTP_204_NO_CONTENT
+
+
+######################################################################
+#  ACTION ROUTE TO CANCEL AN ORDER
+######################################################################
+@app.route("/orders/<int:order_id>/cancel", methods=["PUT"])
+def cancel_order(order_id):
+    """Action route to cancel an order using order id"""
+    app.logger.info(f"Request to cancel order id:{order_id}")
+    # Check if order exists
+    order = Order.find(order_id)
+    if not order:
+        abort(status.HTTP_404_NOT_FOUND, f"Order with id '{order_id}' was not found.")
+
+    app.logger.info(f"Changing status of order with order id:{order_id} to CANCELLED")
+    order.status = OrderStatus.CANCELLED
+    order.update()
+    # Return the updated order
+    return jsonify(order.serialize()), status.HTTP_200_OK
+
+
+######################################################################
+#  ACTION ROUTE TO UPDATE ORDER STATUS
+######################################################################
+@app.route("/orders/<int:order_id>/update", methods=["PUT"])
+def update_status(order_id):
+    """Action to update the status of an order"""
+    app.logger.info(f"Request to change status of order id:{order_id}")
+    # Check if order exists
+    order = Order.find(order_id)
+
+    if not order:
+        abort(status.HTTP_404_NOT_FOUND, f"Order with id '{order_id}' was not found.")
+
+    if not order.items:
+        abort(
+            status.HTTP_400_BAD_REQUEST,
+            f"Cannot change status of order_id:{order_id} with no items",
+        )
+
+    if order.status in [OrderStatus.COMPLETED, OrderStatus.CANCELLED]:
+        abort(
+            status.HTTP_400_BAD_REQUEST,
+            "Cannot change the status of an order that is COMPLETED or CANCELLED",
+        )
+
+    # Get the next status
+    status_list = OrderStatus.list()
+    current_status_idx = status_list.index(order.status.value)
+
+    # Change the status to the next one
+    next_status = OrderStatus(status_list[current_status_idx + 1])
+    order.status = next_status
+    order.update()  # Save the updated order status to the database
+
+    return (
+        jsonify({"order_id": order.id, "status": order.status.value}),
+        status.HTTP_200_OK,
+    )
 
 
 ######################################################################
