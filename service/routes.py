@@ -23,7 +23,7 @@ and Delete YourResourceModel
 
 from flask import jsonify, request, url_for, abort
 from flask import current_app as app  # Import Flask application
-from service.models import Item, Order
+from service.models import Item, Order, OrderStatus
 from service.common import status  # HTTP Status Codes
 
 
@@ -55,12 +55,9 @@ def index():
 ######################################################################
 
 
-# L I S T   A L L   O R D E R S #########
-# """
-# curl -X GET "http://127.0.0.1:8080/orders"
-# """
-
-
+######################################################################
+#  LIST ORDERS BASED ON QUERY
+######################################################################
 @app.route("/orders", methods=["GET"])
 def list_orders():
     """
@@ -70,38 +67,16 @@ def list_orders():
     app.logger.info("Request to list Orders...")
 
     # Get query parameters
+    customer_name = request.args.get("customer_name")
+    order_id = request.args.get("order_id", type=int)
     status_val = request.args.get("status")
     page = request.args.get("page", 1, type=int)
     page_size = request.args.get("page_size", 10, type=int)
 
     # Get all orders
-    orders = Order.all()
-    app.logger.info(f"Found {len(orders)} total orders")
-
-    # Filter orders manually to ensure correct status comparison
-    filtered_orders = []
-
-    for order in orders:
-        # Only filter by status if a status filter was provided
-        if status_val:
-            # Get the order's status value as a string for comparison
-            order_status = order.status
-            order_status_val = (
-                order_status.value
-                if hasattr(order_status, "value")
-                else str(order_status)
-            )
-
-            app.logger.info(
-                f"Order {order.id}: status={order_status_val}, requested={status_val}"
-            )
-
-            # Skip this order if status doesn't match
-            if order_status_val != status_val:
-                continue
-
-        # If we get here, add the order to our filtered list
-        filtered_orders.append(order)
+    filtered_orders = Order.find_by_filters(
+        customer_name=customer_name, order_status=status_val, order_id=order_id
+    )
 
     app.logger.info(f"After filtering: {len(filtered_orders)} orders match criteria")
 
@@ -131,14 +106,9 @@ def list_orders():
     return jsonify(response), status.HTTP_200_OK
 
 
-# C R E A T E   A   N E W   O R D E R #########
-# """
-# curl -X POST "http://127.0.0.1:8080/orders" \
-# -H "Content-Type: application/json" \
-# -d '{"customer_name": "Alice", "status": "PENDING"}'
-# """
-
-
+######################################################################
+#  CREATE A NEW ORDER
+######################################################################
 @app.route("/orders", methods=["POST"])
 def create_order():
     """
@@ -160,12 +130,9 @@ def create_order():
     return jsonify(message), status.HTTP_201_CREATED, {"location": location_url}
 
 
-# R E T R E I V E   A N     O R D E R   U S I N G   O R D E R   I D #########
-# """
-# curl -X GET "http://127.0.0.1:8080/orders/1"
-# """
-
-
+######################################################################
+#  RETRIEVE AN ORDER
+######################################################################
 @app.route("/orders/<int:order_id>", methods=["GET"])
 def get_order(order_id):
     """
@@ -180,14 +147,9 @@ def get_order(order_id):
     return jsonify(order.serialize()), status.HTTP_200_OK
 
 
-# U P D A T E   A N    E X I S T I N G   O R D E R    U S I N G      O R D E R   I D #
-# """
-# curl -X PUT "http://127.0.0.1:8080/orders/1" \
-#     -H "Content-Type: application/json" \
-#     -d '{"customer_name": "Alice", "status": "shipped"}'
-# """
-
-
+######################################################################
+#  UPDATE AN EXISTING ORDER
+######################################################################
 @app.route("/orders/<int:order_id>", methods=["PUT"])
 def update_order(order_id):
     """
@@ -211,7 +173,9 @@ def update_order(order_id):
     return jsonify(order.serialize()), status.HTTP_200_OK
 
 
-# D E L E T E   A N     O R D E R    U S I N G      O R D E R   I D #########
+######################################################################
+#  DELETE AN ORDER
+######################################################################
 @app.route("/orders/<int:order_id>", methods=["DELETE"])
 def delete_order(order_id):
     """Delete order using the order id"""
@@ -219,14 +183,69 @@ def delete_order(order_id):
 
     # check for order
     order = Order.find(order_id)
-    if not order:
-        abort(
-            status.HTTP_404_NOT_FOUND,
-            f"Order with order id: '{order_id}' is not found and cannot be deleted",
-        )
-    order.delete()
+    if order:
+        order.delete()
 
     return "", status.HTTP_204_NO_CONTENT
+
+
+######################################################################
+#  ACTION ROUTE TO CANCEL AN ORDER
+######################################################################
+@app.route("/orders/<int:order_id>/cancel", methods=["PUT"])
+def cancel_order(order_id):
+    """Action route to cancel an order using order id"""
+    app.logger.info(f"Request to cancel order id:{order_id}")
+    # Check if order exists
+    order = Order.find(order_id)
+    if not order:
+        abort(status.HTTP_404_NOT_FOUND, f"Order with id '{order_id}' was not found.")
+
+    app.logger.info(f"Changing status of order with order id:{order_id} to CANCELLED")
+    order.status = OrderStatus.CANCELLED
+    order.update()
+    # Return the updated order
+    return jsonify(order.serialize()), status.HTTP_200_OK
+
+
+######################################################################
+#  ACTION ROUTE TO UPDATE ORDER STATUS
+######################################################################
+@app.route("/orders/<int:order_id>/update", methods=["PUT"])
+def update_status(order_id):
+    """Action to update the status of an order"""
+    app.logger.info(f"Request to change status of order id:{order_id}")
+    # Check if order exists
+    order = Order.find(order_id)
+
+    if not order:
+        abort(status.HTTP_404_NOT_FOUND, f"Order with id '{order_id}' was not found.")
+
+    if not order.items:
+        abort(
+            status.HTTP_400_BAD_REQUEST,
+            f"Cannot change status of order_id:{order_id} with no items",
+        )
+
+    if order.status in [OrderStatus.COMPLETED, OrderStatus.CANCELLED]:
+        abort(
+            status.HTTP_400_BAD_REQUEST,
+            "Cannot change the status of an order that is COMPLETED or CANCELLED",
+        )
+
+    # Get the next status
+    status_list = OrderStatus.list()
+    current_status_idx = status_list.index(order.status.value)
+
+    # Change the status to the next one
+    next_status = OrderStatus(status_list[current_status_idx + 1])
+    order.status = next_status
+    order.update()  # Save the updated order status to the database
+
+    return (
+        jsonify({"order_id": order.id, "status": order.status.value}),
+        status.HTTP_200_OK,
+    )
 
 
 ######################################################################
@@ -234,8 +253,9 @@ def delete_order(order_id):
 ######################################################################
 
 
-#   L I S T     I T E M S     F R O M     A N   E X I S T I N G     O R D E R   #########
-# curl -X GET "http://127.0.0.1:8080/orders/1/items"
+######################################################################
+#  LIST ITEMS FROM AN EXISTING ORDER
+######################################################################
 @app.route("/orders/<int:order_id>/items", methods=["GET"])
 def list_items(order_id):
     """
@@ -257,18 +277,9 @@ def list_items(order_id):
     return jsonify(results), status.HTTP_200_OK
 
 
-#   A D D     A N     I T E M     T O   A N     A N     E X I S T I N G     O R D E R   ##
-# """
-# curl -X POST "http://127.0.0.1:8080/orders/1/items" \
-# -H "Content-Type: application/json" \
-# -d '{
-#     "name": "Laptop",
-#     "price": 1200.99,
-#     "quantity": 10
-#     }'
-# """
-
-
+######################################################################
+#  ADD ITEM TO AN EXISTING ORDER
+######################################################################
 @app.route("/orders/<int:order_id>/items", methods=["POST"])
 def create_item(order_id):
     """
@@ -305,12 +316,9 @@ def create_item(order_id):
     return jsonify(message), status.HTTP_201_CREATED, {"Location": location_url}
 
 
-#  R E T R E I V E    A N     I T E M     F R O M     A N      E X I S T I N G     O R D E R   #########
-# """
-# curl -X GET "http://127.0.0.1:8080/orders/1/items/1"
-# """
-
-
+######################################################################
+#  RETRIEVE AN ITEM FROM AN EXISTING ORDER
+######################################################################
 @app.route("/orders/<int:order_id>/items/<int:item_id>", methods=["GET"])
 def get_item(order_id, item_id):
     """
@@ -331,18 +339,9 @@ def get_item(order_id, item_id):
     return jsonify(item.serialize()), status.HTTP_200_OK
 
 
-#   U P D A T E     A N     I T E M     F R O M     A N     E X I S T I N G     O R D E R   #########
-# """
-# curl -X PUT "http://127.0.0.1:8080/orders/1/items/2" \
-#      -H "Content-Type: application/json" \
-#      -d '{
-#            "name": "Updated Laptop",
-#            "price": 999.99,
-#            "quantity": 5
-#          }'
-# """
-
-
+######################################################################
+#  UPDATE AN ITEM FROM AN EXISTING ORDER
+######################################################################
 @app.route("/orders/<int:order_id>/items/<int:item_id>", methods=["PUT"])
 def update_item(order_id, item_id):
     """
@@ -376,7 +375,9 @@ def update_item(order_id, item_id):
     return jsonify(item.serialize()), status.HTTP_200_OK
 
 
-#   D E L E T E     A N     I T E M     F R O M     A N     E X I S T I N G     O R D E R   #########
+######################################################################
+#  DELETE AN ITEM FROM AN EXISTING ORDER
+######################################################################
 @app.route("/orders/<int:order_id>/items/<int:item_id>", methods=["DELETE"])
 def delete_item_from_order(order_id, item_id):
     """Delete an item from a given order"""
@@ -393,17 +394,14 @@ def delete_item_from_order(order_id, item_id):
         )
     # Check if item is there
     item = Item.find(item_id)
-    if not item:
-        abort(
-            status.HTTP_404_NOT_FOUND,
-            f"Item with id '{item_id}' in Order '{order_id}' could not be found.",
-        )
-
-    item.delete()
+    if item:
+        item.delete()
     return "", status.HTTP_204_NO_CONTENT
 
 
-# R O U T E S     C O M P L E T E ################################
+######################################################################
+#  A L L    R O U T E S     C O M P L E T E
+######################################################################
 
 
 def check_content_type(content_type):

@@ -112,9 +112,37 @@ class TestOrderModel(TestCase):
         order.customer_name = "dev"
         order.create()
 
-        named_order = Order.find_by_name("dev")
+        named_order = Order.find_by_filters(customer_name="dev")
         self.assertGreater(len(named_order), 0)  # Ensure we got at least one result
         self.assertEqual(named_order[0].customer_name, "dev")
+
+    def test_find_by_id(self):
+        """Should return the order by id"""
+        order = OrderFactory()
+        order.create()
+        order_id = order.id
+
+        named_order = Order.find_by_filters(order_id=order_id)
+        self.assertGreater(len(named_order), 0)  # Ensure we got at least one result
+        self.assertEqual(named_order[0].id, order_id)
+
+    def test_find_by_status(self):
+        """Should return the order by status"""
+        order = OrderFactory()
+        order.create()
+        order_stat = order.status.value
+
+        named_order = Order.find_by_filters(order_status=order_stat)
+        self.assertGreater(len(named_order), 0)  # Ensure we got at least one result
+        self.assertEqual(named_order[0].status.value, order_stat)
+
+    def test_find_incorrect_status(self):
+        """Should not return anything if status is incorrect"""
+        order = OrderFactory()
+        order.create()
+
+        named_order = Order.find_by_filters(order_status="FAULTY")
+        self.assertEqual(len(named_order), 0)
 
     def test_serialization(self):
         """Order should be correctly serialized"""
