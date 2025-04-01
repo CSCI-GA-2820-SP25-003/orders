@@ -57,7 +57,7 @@ jobs:
       # and then uncomment the CodeCov action during hands-on lab
 
       - name: Upload coverage reports to Codecov
-        uses: codecov/codecov-action@v3.1.4
+        uses: codecov/codecov-action@v5
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           slug: CSCI-GA-2820-SP25-003/orders
