@@ -1,0 +1,9 @@
+sudo sh -c 'echo "127.0.0.1 cluster-registry" >> /etc/hosts'
+docker build -t hitcounter:1.0 .
+docker tag hitcounter:1.0 cluster-registry:5000/hitcounter:1.0
+docker push cluster-registry:5000/hitcounter:1.0
+make cluster
+kubectl apply -f k8s/
+
+kubectl port-forward service/hitcounter 8081:8080
+
