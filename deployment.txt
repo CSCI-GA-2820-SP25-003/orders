@@ -1,10 +1,11 @@
-sudo sh -c 'echo "127.0.0.1 cluster-registry" >> /etc/hosts'
-docker build -t cluster-registry:5000/hitcounter:1.0 .
-docker build -t hitcounter:1.0 .
-docker tag hitcounter:1.0 cluster-registry:5000/hitcounter:1.0
-docker push cluster-registry:5000/hitcounter:1.0
 make cluster
+sudo sh -c 'echo "127.0.0.1 cluster-registry" >> /etc/hosts'
+docker build -t cluster-registry:5000/orders:1.0 .
+docker build -t orders:1.0 .
+docker tag orders:1.0 cluster-registry:5000/orders:1.0
+docker push cluster-registry:5000/orders:1.0
+kubectl apply -f k8s/postgres
 kubectl apply -f k8s/
 
-kubectl port-forward service/hitcounter 8081:8080
+kubectl port-forward service/orders 8081:8080
 
