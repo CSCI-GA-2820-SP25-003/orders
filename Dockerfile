@@ -4,12 +4,8 @@ FROM python:3.11-slim
 # Set up the Python development environment
 WORKDIR /app
 COPY Pipfile Pipfile.lock ./
-# RUN python -m pip install --upgrade pip pipenv && \
-#     pipenv install --system --deploy
 RUN python -m pip install --upgrade pip pipenv && \
-    pipenv install --system --deploy && \
-    pip install psycopg2-binary
-
+    pipenv install --system --deploy
 
 # Copy the application contents
 COPY wsgi.py .
