@@ -42,12 +42,7 @@ def health_check():
 @app.route("/")
 def index():
     """Root URL response"""
-    response_data = {
-        "name": "Welcome to Orders Service",
-        "version": "1.0.0",
-        "list_resource_url": url_for("list_orders"),
-    }
-    return jsonify(response_data), status.HTTP_200_OK
+    return app.send_static_file("index.html")
 
 
 ######################################################################
