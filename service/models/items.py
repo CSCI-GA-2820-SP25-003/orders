@@ -24,7 +24,7 @@ class Item(db.Model, PersistentBase):
     )
     name = db.Column(db.String(128), nullable=False)
     price = db.Column(db.Float, nullable=False)
-    quantity = db.Column(db.Integer, nullable=False, default=0)
+    quantity = db.Column(db.Integer, nullable=False, default=1)
     # description = db.Column(db.String(256), nullable=True)
 
     def __repr__(self):
