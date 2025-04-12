@@ -20,6 +20,7 @@ $(function () {
 
     /// Clears all form fields
     function clear_form_data() {
+        $("#order_order_id").val("");
         $("#order_customer_name").val("");
         $("#order_status").val("");
         $("#order_product_name").val("");
@@ -189,6 +190,7 @@ $(function () {
         let order_id = $("#order_order_id").val();
         let customer_name = $("#order_customer_name").val();
         let status = $("#order_status").val();
+        let product_name = $("#order_product_name").val();
 
         let queryString = ""
 
@@ -204,6 +206,12 @@ $(function () {
             } else {
                 queryString += 'status=' + status
             }
+        }
+        if (product_name) {
+            if (queryString.length > 0) {
+                queryString += '&';
+            }
+            queryString += 'product_name=' + product_name;
         }
 
         $("#flash_message").empty();

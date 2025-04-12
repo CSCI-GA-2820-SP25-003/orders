@@ -64,13 +64,17 @@ def list_orders():
     # Get query parameters
     customer_name = request.args.get("customer_name")
     order_id = request.args.get("order_id", type=int)
+    product_name = request.args.get("product_name")
     status_val = request.args.get("status")
     page = request.args.get("page", 1, type=int)
     page_size = request.args.get("page_size", 10, type=int)
 
     # Get all orders
     filtered_orders = Order.find_by_filters(
-        customer_name=customer_name, order_status=status_val, order_id=order_id
+        customer_name=customer_name,
+        order_status=status_val,
+        order_id=order_id,
+        product_name=product_name,
     )
 
     app.logger.info(f"After filtering: {len(filtered_orders)} orders match criteria")
