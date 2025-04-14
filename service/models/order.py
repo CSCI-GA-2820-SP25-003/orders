@@ -114,7 +114,9 @@ class Order(db.Model, PersistentBase):
         return self
 
     @classmethod
-    def find_by_filters(cls, customer_name=None, order_status=None, order_id=None):
+    def find_by_filters(
+        cls, customer_name=None, order_status=None, order_id=None, product_name=None
+    ):
         """
         Returns all Orders matching the given filters.
 
@@ -137,4 +139,6 @@ class Order(db.Model, PersistentBase):
                 query = query.filter(False)
         if order_id:
             query = query.filter(cls.id == order_id)
+        if product_name:
+            query = query.join(Item).filter(Item.name == product_name)
         return query.all()

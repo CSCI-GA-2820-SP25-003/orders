@@ -6,15 +6,25 @@ $(function () {
 
     // Updates the form with data from the response
     function update_form_data(res) {
-        $("#order_id").val(res.id);
+        $("#order_order_id").val(res.id);
         $("#order_customer_name").val(res.customer_name);
         $("#order_status").val(res.status);
+
+        // Handle items array - taking first item for now
+        if (res.items && res.items.length > 0) {
+            let item = res.items[0];
+            $("#order_product_name").val(item.product_name);
+            $("#order_price").val(item.price);
+        }
     }
 
     /// Clears all form fields
     function clear_form_data() {
+        $("#order_order_id").val("");
         $("#order_customer_name").val("");
-        $("#order_status").val("PLACEHOLDER");
+        $("#order_status").val("");
+        $("#order_product_name").val("");
+        $("#order_price").val("");
     }
 
     // Updates the flash message area
@@ -24,17 +34,24 @@ $(function () {
     }
 
     // ****************************************
-    // Create a Pet
+    // Create an Order
     // ****************************************
 
     $("#create-btn").click(function () {
-
         let customer_name = $("#order_customer_name").val();
         let status = $("#order_status").val();
+        let product_name = $("#order_product_name").val();
+        let quantity = $("#order_quantity").val();
+        let price = $("#order_price").val();
 
         let data = {
             "customer_name": customer_name,
-            "status": status
+            "status": status,
+            "items": [{
+                "name": product_name,
+                "quantity": parseInt(quantity),
+                "price": parseFloat(price)
+            }]
         };
 
         $("#flash_message").empty();
@@ -58,28 +75,35 @@ $(function () {
 
 
     // ****************************************
-    // Update a Pet
+    // Update an Order
     // ****************************************
 
     $("#update-btn").click(function () {
-
         let order_id = $("#order_id").val();
         let customer_name = $("#order_customer_name").val();
         let status = $("#order_status").val();
+        let product_name = $("#order_product_name").val();
+        let quantity = $("#order_quantity").val();
+        let price = $("#order_price").val();
 
         let data = {
             "customer_name": customer_name,
-            "status": status
+            "status": status,
+            "items": [{
+                "name": product_name,
+                "quantity": parseInt(quantity),
+                "price": parseFloat(price)
+            }]
         };
 
         $("#flash_message").empty();
 
         let ajax = $.ajax({
-                type: "PUT",
-                url: `/orders/${order_id}`,
-                contentType: "application/json",
-                data: JSON.stringify(data)
-            })
+            type: "PUT",
+            url: `/orders/${order_id}`,
+            contentType: "application/json",
+            data: JSON.stringify(data)
+        });
 
         ajax.done(function(res){
             update_form_data(res)
@@ -89,16 +113,15 @@ $(function () {
         ajax.fail(function(res){
             flash_message(res.responseJSON.message)
         });
-
     });
 
     // ****************************************
-    // Retrieve a Pet
+    // Retrieve an Order
     // ****************************************
 
     $("#retrieve-btn").click(function () {
 
-        let order_id = $("#order_id").val();
+        let order_id = $("#order_order_id").val();
 
         $("#flash_message").empty();
 
@@ -106,7 +129,7 @@ $(function () {
             type: "GET",
             url: `/orders/${order_id}`,
             contentType: "application/json",
-            data: ''
+            data: '',
         })
 
         ajax.done(function(res){
@@ -123,12 +146,12 @@ $(function () {
     });
 
     // ****************************************
-    // Delete a Pet
+    // Delete an Order
     // ****************************************
 
     $("#delete-btn").click(function () {
 
-        let order_id = $("#order_id").val();
+        let order_id = $("#order_order_id").val();
 
         $("#flash_message").empty();
 
@@ -164,23 +187,31 @@ $(function () {
     // ****************************************
 
     $("#search-btn").click(function () {
-
+        let order_id = $("#order_order_id").val();
         let customer_name = $("#order_customer_name").val();
         let status = $("#order_status").val();
-
-        if (status == "UNKNOWN") status = null
+        let product_name = $("#order_product_name").val();
 
         let queryString = ""
 
+        if (order_id) {
+            queryString += 'order_id=' + order_id
+        }
         if (customer_name) {
             queryString += 'customer_name=' + customer_name
         }
         if (status) {
             if (queryString.length > 0) {
-                queryString += '&status=' + status
+                queryString += '&' + status
             } else {
                 queryString += 'status=' + status
             }
+        }
+        if (product_name) {
+            if (queryString.length > 0) {
+                queryString += '&';
+            }
+            queryString += 'product_name=' + product_name;
         }
 
         $("#flash_message").empty();
@@ -199,12 +230,16 @@ $(function () {
             table += '<thead><tr>'
             table += '<th class="col-md-2">ID</th>'
             table += '<th class="col-md-2">Customer Name</th>'
+            table += '<th class="col-md-2">Product Name</th>'
+            table += '<th class="col-md-2">Quantity</th>'
+            table += '<th class="col-md-2">Price</th>'
             table += '<th class="col-md-2">Status</th>'
             table += '</tr></thead><tbody>'
             let firstOrder = "";
             for(let i = 0; i < res.orders.length; i++) {
                 let order = res.orders[i];
-                table +=  `<tr id="row_${i}"><td>${order.id}</td><td>${order.customer_name}</td><td>${order.status}</td></tr>`;
+                let item = order.items[0] || {}; // Get first item or empty object if no items
+                table +=  `<tr id="row_${i}"><td>${order.id}</td><td>${order.customer_name}</td><td>${item.name || ''}</td><td>${item.quantity}</td><td>${item.price || ''}</td><td>${order.status}</td></tr>`;
                 if (i == 0) {
                     firstOrder = order;
                 }

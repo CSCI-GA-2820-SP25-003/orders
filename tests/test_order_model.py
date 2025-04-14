@@ -126,6 +126,18 @@ class TestOrderModel(TestCase):
         self.assertGreater(len(named_order), 0)  # Ensure we got at least one result
         self.assertEqual(named_order[0].id, order_id)
 
+    def test_find_by_product_name(self):
+        """Should return the order by product name"""
+        order = OrderFactory()
+        item = ItemFactory()
+        order.items.append(item)
+        order.create()
+
+        named_order = Order.find_by_filters(product_name=item.name)
+        self.assertGreater(len(named_order), 0)
+        self.assertEqual(named_order[0].items[0].name, item.name)
+        self.assertEqual(named_order[0].items[0].order_id, order.id)
+
     def test_find_by_status(self):
         """Should return the order by status"""
         order = OrderFactory()
