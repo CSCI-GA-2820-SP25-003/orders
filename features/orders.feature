@@ -60,6 +60,33 @@ Scenario: Query Orders by Various Criteria
     And I should not see "Customer One" in the results
     And I should not see "Customer Two" in the results
 
+Scenario: Update an Order
+    When I visit the "Home Page"
+    And I press the "Clear" button
+    And I press the "Search" button
+    Then I should see the message "Success"
+    When I copy the "Order ID" field
+    And I press the "Clear" button
+    And I paste the "Order ID" field
+    And I press the "Retrieve" button
+    Then I should see the message "Success"
+    When I set the "Customer Name" to "John Doe"
+    And I select "SHIPPED" in the "Status" dropdown
+    And I set the "Product Name" to "Laptop"
+    And I set the "Quantity" to "1"
+    And I set the "Price" to "1299.99"
+    And I press the "Update" button
+    Then I should see the message "Success"
+    When I press the "Clear" button
+    And I paste the "Order ID" field
+    And I press the "Retrieve" button
+    Then I should see the message "Success"
+    And I should see "John Doe" in the "Customer Name" field
+    And I should see "SHIPPED" in the "Status" field
+    And I should see "T-Shirt" in the "Product Name" field
+    And I should see "2" in the "Quantity" field
+    And I should see "99.99" in the "Price" field
+
 Scenario: Cancel an Order
     When I visit the "Home Page"
     And I press the "Clear" button

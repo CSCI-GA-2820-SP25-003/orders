@@ -13,17 +13,18 @@ $(function () {
         // Handle items array - taking first item for now
         if (res.items && res.items.length > 0) {
             let item = res.items[0];
-            $("#order_product_name").val(item.product_name);
+            $("#order_product_name").val(item.name);
+            $("#order_quantity").val(item.quantity);
             $("#order_price").val(item.price);
         }
     }
 
     /// Clears all form fields
     function clear_form_data() {
-        $("#order_order_id").val("");
         $("#order_customer_name").val("");
         $("#order_status").val("");
         $("#order_product_name").val("");
+        $("#order_quantity").val("");
         $("#order_price").val("");
     }
 
@@ -79,7 +80,7 @@ $(function () {
     // ****************************************
 
     $("#update-btn").click(function () {
-        let order_id = $("#order_id").val();
+        let order_id = $("#order_order_id").val();
         let customer_name = $("#order_customer_name").val();
         let status = $("#order_status").val();
         let product_name = $("#order_product_name").val();
@@ -203,35 +204,29 @@ $(function () {
     // ****************************************
 
     $("#clear-btn").click(function () {
-        $("#order_id").val("");
+        $("#order_order_id").val("");
         $("#flash_message").empty();
         clear_form_data()
     });
 
     // ****************************************
-    // Search for an Order
+    // Search for Orders
     // ****************************************
 
     $("#search-btn").click(function () {
-        let order_id = $("#order_order_id").val();
         let customer_name = $("#order_customer_name").val();
         let status = $("#order_status").val();
         let product_name = $("#order_product_name").val();
 
-        let queryString = ""
-
-        if (order_id) {
-            queryString += 'order_id=' + order_id
-        }
+        let queryString = "";
         if (customer_name) {
-            queryString += 'customer_name=' + customer_name
+            queryString += 'customer_name=' + customer_name;
         }
         if (status) {
             if (queryString.length > 0) {
-                queryString += '&' + status
-            } else {
-                queryString += 'status=' + status
+                queryString += '&';
             }
+            queryString += 'status=' + status;
         }
         if (product_name) {
             if (queryString.length > 0) {
@@ -244,10 +239,10 @@ $(function () {
 
         let ajax = $.ajax({
             type: "GET",
-            url: `/orders?${queryString}`,
+            url: `/orders${queryString ? '?' + queryString : ''}`,
             contentType: "application/json",
             data: ''
-        })
+        });
 
         ajax.done(function(res){
             //alert(res.toSource())
