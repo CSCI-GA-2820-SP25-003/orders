@@ -138,3 +138,14 @@ Scenario: Read an Order
     Then I should see the message "Success"
     And I should see "Customer One" in the "Customer Name" field
     And I should see "CREATED" in the "Status" field
+
+Scenario: Read an Item
+    When I visit the "Home Page"
+    And I press the "Clear" button
+    And I press the "Search" button
+    Then I should see the message "Success"
+    When I copy the "Order ID" field
+    And I paste the "ID Item" field 
+    And I press the "Search Item" button
+    Then I should see the message "Success"
+    Then I should see "99.99" in the "Item Price" field
