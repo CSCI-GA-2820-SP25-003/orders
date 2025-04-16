@@ -87,6 +87,25 @@ Scenario: Update an Order
     And I should see "2" in the "Quantity" field
     And I should see "99.99" in the "Price" field
 
+Scenario: Update an Item
+    When I visit the "Home Page"
+    And I press the "Clear" button
+    And I press the "Search" button
+    Then I should see the message "Success"
+    When I copy the "Order ID" field
+    And I paste the "ID Item" field 
+    And I press the "Search Item" button
+    Then I should see the message "Success"
+    Then I should see "99.99" in the "Item Price" field
+    When I set the "Item Price" to "600"
+    And I press the "Update Item" button
+    Then I should see the message "Success"
+    When I press the "Clear Item" button
+    And I copy the "Order ID" field
+    And I paste the "ID Item" field
+    And I press the "Search Item" button
+    Then I should see "600" in the "Item Price" field
+
 Scenario: Cancel an Order
     When I visit the "Home Page"
     And I press the "Clear" button

@@ -282,4 +282,137 @@ $(function () {
 
     });
 
+    // ****************************************************
+    //  U T I L I T Y   F U N C T I O N S  F O R  I T E M S
+    // ****************************************************
+
+    // Updates the form with data from the response
+    function update_item_form_data(res) {
+        $("#order_item_id").val(res.id);
+        $("#order_item_product_name").val(res.name);
+        $("#order_item_quantity").val(res.quantity);
+        $("#order_item_price").val(res.price);
+    }
+
+    // clears the item form data
+    function clear_item_form_data() {
+        $("#order_id_item").val("");
+        $("#order_item_id").val("");
+        $("#order_item_product_name").val("");
+        $("#order_item_quantity").val("");
+        $("#order_item_price").val("");
+    }
+
+    // Updates the flash message item area
+    function flash_item_message(message) {
+        $("#flash_message").empty();
+        $("#flash_message").append(message);
+    }
+
+    // ****************************************
+    // Update Item in an Order
+    // ****************************************
+
+    $("#update_item-btn").click(function () {
+        let order_id = $("#order_id_item").val();
+        let item_id = $("#order_item_id").val();
+        let product_name = $("#order_item_product_name").val();
+        let quantity = $("#order_item_quantity").val();
+        let price = $("#order_item_price").val();
+
+        let data = {
+            "name": product_name,
+            "quantity": parseInt(quantity),
+            "price": parseFloat(price)
+        };
+
+        $("#flash_message_item").empty();
+
+        let ajax = $.ajax({
+            type: "PUT",
+            url: `/orders/${order_id}/items/${item_id}`,
+            contentType: "application/json",
+            data: JSON.stringify(data)
+        });
+
+        ajax.done(function(res){
+            update_item_form_data(res)
+            flash_item_message("Success")
+        });
+
+        ajax.fail(function(res){
+            flash_item_message(res.responseJSON.message)
+        });
+    });
+
+    // ****************************************
+    // Search for items in an Order
+    // ****************************************
+
+    $("#search_item-btn").click(function () {
+        let order_id = $("#order_id_item").val();
+        
+        $("#flash_message").empty();
+
+        let ajax = $.ajax({
+            type: "GET",
+            url: `/orders/${order_id}/items`,
+            contentType: "application/json",
+            data: ''
+        });
+
+        ajax.done(function(res){
+            $("#search_results_item").empty();
+            let table = '<table class="table table-striped" cellpadding="10">';
+            table += '<thead><tr>';
+            table += '<th class="col-md-2">Item ID</th>';
+            table += '<th class="col-md-2">Product Name</th>';
+            table += '<th class="col-md-2">Quantity</th>';
+            table += '<th class="col-md-2">Price</th>';
+            table += '</tr></thead><tbody>';
+            
+            let firstItem = "";
+            flash_item_message("len="+res.length)
+            for(let i = 0; i < res.length; i++) {
+                let item = res[i];
+                table += `<tr id="row_${i}">`;
+                table += `<td>${item.id}</td>`;
+                table += `<td>${item.name}</td>`;
+                table += `<td>${item.quantity}</td>`;
+                table += `<td>${item.price}</td>`;
+                table += '</tr>';
+                if (i == 0) {
+                    firstItem = item;
+                }
+            }
+            table += '</tbody></table>';
+            $("#search_results_item").append(table);
+
+            // copy the first result to the form
+            if (firstItem != "") {
+                update_item_form_data(firstItem)
+            }
+
+            flash_item_message("Success")
+        });
+
+        ajax.fail(function(res){
+            flash_item_message(res.responseJSON.message)
+        });
+    });
+
+    // ****************************************
+    // Clear the item form
+    // ****************************************
+
+    $("#clear_item-btn").click(function () {
+        $("#order_id_item").val("");
+        $("#order_item_id").val("");
+        $("#order_item_product_name").val("");
+        $("#order_item_quantity").val("");
+        $("#order_item_price").val("");
+        $("#flash_message_item").empty();
+        clear_form_data()
+    });
+
 })
