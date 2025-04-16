@@ -156,19 +156,20 @@ def update_order(order_id):
 
     This endpoint will update an Order based on the body that is posted
     """
-    app.logger.info("Request to update order with id: %s", order_id)
-    check_content_type("application/json")
-
-    # See if the order exists and abort if it doesn't
+    app.logger.info(f"Request to update order id:{order_id}")
+    # Check if order exists
     order = Order.find(order_id)
     if not order:
-        abort(status.HTTP_404_NOT_FOUND, f"Account with id '{order_id}' was not found.")
+        abort(status.HTTP_404_NOT_FOUND, f"Order with id '{order_id}' was not found.")
+    # Update order with info in the json request
+    data = request.get_json()
+    app.logger.debug("Payload received for update: %s", data)
 
-    # update from the json in the body of the request
-    order.deserialize(request.get_json())
+    data = request.get_json()
+    order.deserialize(data)
     order.id = order_id
     order.update()
-
+    # Return the updated order
     return jsonify(order.serialize()), status.HTTP_200_OK
 
 
