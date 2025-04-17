@@ -165,7 +165,7 @@ $(function () {
 
         ajax.done(function(res){
             clear_form_data()
-            flash_message("Pet has been Deleted!")
+            flash_message("Order is Deleted!")
         });
 
         ajax.fail(function(res){
@@ -482,11 +482,16 @@ $(function () {
 
         ajax.done(function(res){
             clear_item_form_data()
-            flash_item_message("Item has been Deleted!")
+            flash_item_message("Item is Deleted!")
         });
 
         ajax.fail(function(res){
-            flash_item_message("Server error!")
+            if (res.responseJSON && res.responseJSON.message){
+                flash_item_message(res.responseJSON.message)
+            }
+            else{
+                flash_item_message("Server error!")
+            }
         });
     });
 
