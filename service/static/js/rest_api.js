@@ -346,37 +346,67 @@ $(function () {
     });
 
     // ****************************************
-    // Delete an Item in an Order
+    // Create items in an Order
     // ****************************************
 
-    $("#delete_item-btn").click(function () {
+    $("#create_item-btn").click(function () {
+        let order_id = $("#order_id_item").val();
+        let product_name = $("#order_item_product_name").val();
+        let quantity = $("#order_item_quantity").val();
+        let price = $("#order_item_price").val();
+
+        let data = {
+            "name": product_name,
+            "quantity": parseInt(quantity),
+            "price": parseFloat(price)
+        };
+
+        $("#flash_message_item").empty();
+
+        let ajax = $.ajax({
+            type: "POST",
+            url: `/orders/${order_id}/items`,
+            contentType: "application/json",
+            data: JSON.stringify(data)
+        });
+
+        ajax.done(function(res){
+            update_item_form_data(res)
+            flash_item_message("Success")
+        });
+
+        ajax.fail(function(res){
+            flash_item_message(res.responseJSON.message)
+        });
+    });
+
+    // ****************************************
+    // Retrieve items in an Order
+    // ****************************************
+
+    $("#retrieve-item-btn").click(function () {
         let order_id = $("#order_id_item").val();
         let item_id = $("#order_item_id").val();
 
         $("#flash_message_item").empty();
 
         let ajax = $.ajax({
-            type: "DELETE",
+            type: "GET",
             url: `/orders/${order_id}/items/${item_id}`,
             contentType: "application/json",
             data: ''
         });
 
         ajax.done(function(res){
-            clear_item_form_data()
-            flash_item_message("Item is Deleted!")
+            update_item_form_data(res)
+            flash_item_message("Success")
         });
 
         ajax.fail(function(res){
-            if (res.responseJSON && res.responseJSON.message){
-                flash_item_message(res.responseJSON.message)
-            }
-            else{
-                flash_item_message("Server error!")
-            }
+            clear_item_form_data()
+            flash_item_message(res.responseJSON.message)
         });
-    }
-    );
+    });
 
     // ****************************************
     // Search for items in an Order
@@ -431,6 +461,32 @@ $(function () {
 
         ajax.fail(function(res){
             flash_item_message(res.responseJSON.message)
+        });
+    });
+
+    // ****************************************
+    // Delete an Item in an Order
+    // ****************************************
+    $("#delete_item-btn").click(function () {
+        let order_id = $("#order_id_item").val();
+        let item_id = $("#order_item_id").val();
+
+        $("#flash_message_item").empty();
+
+        let ajax = $.ajax({
+            type: "DELETE",
+            url: `/orders/${order_id}/items/${item_id}`,
+            contentType: "application/json",
+            data: ''
+        });
+
+        ajax.done(function(res){
+            clear_item_form_data()
+            flash_item_message("Item has been Deleted!")
+        });
+
+        ajax.fail(function(res){
+            flash_item_message("Server error!")
         });
     });
 
