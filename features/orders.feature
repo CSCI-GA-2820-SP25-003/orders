@@ -149,3 +149,24 @@ Scenario: Read an Item
     And I press the "Search Item" button
     Then I should see the message "Success"
     Then I should see "99.99" in the "Item Price" field
+
+Scenario: List all Orders
+    When I visit the "Home Page"
+    And I press the "Clear" button
+    And I press the "Search" button
+    Then I should see the message "Success"
+    And I should see "Customer One" in the results
+    And I should see "Customer Two" in the results
+
+Scenario: List Items in an Order
+    When I visit the "Home Page"
+    And I press the "Clear" button
+    And I press the "Search" button
+    Then I should see the message "Success"
+    When I copy the "Order ID" field
+    And I paste the "ID Item" field 
+    And I press the "Search Item" button
+    Then I should see the message "Success"
+    And I should see "T-Shirt" in the item results
+
+    
