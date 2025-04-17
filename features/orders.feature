@@ -149,3 +149,50 @@ Scenario: Read an Item
     And I press the "Search Item" button
     Then I should see the message "Success"
     Then I should see "99.99" in the "Item Price" field
+
+Scenario: Delete an Order
+    When I visit the "Home Page"
+    And I press the "Clear" button
+    And I set the "Customer Name" to "Customer One"
+    And I press the "Search" button
+    Then I should see the message "Success"
+    And I should see "Customer One" in the results
+    When I copy the "Order ID" field
+    And I press the "Clear" button
+    And I paste the "Order ID" field
+    And I press the "Retrieve" button
+    Then I should see the message "Success"
+    And I should see "Customer One" in the "Customer Name" field
+    When I press the "Delete" button
+    Then I should see the message "Order is Deleted!"
+    When I press the "Clear" button
+    And I paste the "Order ID" field
+    And I press the "Retrieve" button
+    Then I should see the message "404 Not Found"
+    When I press the "Search" button
+    Then I should see the message "Success"
+    And I should not see "Customer One" in the results
+
+Scenario: Delete an Item from an Order
+    When I visit the "Home Page"
+    And I press the "Clear" button
+    And I set the "Customer Name" to "Customer One"
+    And I press the "Search" button
+    Then I should see "Customer One" in the results
+    When I copy the "Order ID" field
+    And I paste the "ID Item" field
+    And I press the "Search Item" button
+    Then I should see the message "Success"
+    Then I should see "99.99" in the "Item Price" field
+    Then I should see "T-Shirt" in the "Item Product Name" field
+    When I press the "Delete Item" button
+    Then I should see the message "Item is Deleted!"
+    When I press the "Clear Item" button
+    And I copy the "Order ID" field
+    And I paste the "ID Item" field
+    And I press the "Search Item" button
+    Then I should see the message "Success"
+    And the "Item ID" field should be empty
+    And the "Item Product Name" field should be empty
+    And the "Item Quantity" field should be empty
+    And the "Item Price" field should be empty

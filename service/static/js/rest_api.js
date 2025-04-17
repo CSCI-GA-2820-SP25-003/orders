@@ -165,7 +165,7 @@ $(function () {
 
         ajax.done(function(res){
             clear_form_data()
-            flash_message("Pet has been Deleted!")
+            flash_message("Order is Deleted!")
         });
 
         ajax.fail(function(res){
@@ -344,6 +344,39 @@ $(function () {
             flash_item_message(res.responseJSON.message)
         });
     });
+
+    // ****************************************
+    // Delete an Item in an Order
+    // ****************************************
+
+    $("#delete_item-btn").click(function () {
+        let order_id = $("#order_id_item").val();
+        let item_id = $("#order_item_id").val();
+
+        $("#flash_message_item").empty();
+
+        let ajax = $.ajax({
+            type: "DELETE",
+            url: `/orders/${order_id}/items/${item_id}`,
+            contentType: "application/json",
+            data: ''
+        });
+
+        ajax.done(function(res){
+            clear_item_form_data()
+            flash_item_message("Item is Deleted!")
+        });
+
+        ajax.fail(function(res){
+            if (res.responseJSON && res.responseJSON.message){
+                flash_item_message(res.responseJSON.message)
+            }
+            else{
+                flash_item_message("Server error!")
+            }
+        });
+    }
+    );
 
     // ****************************************
     // Search for items in an Order
