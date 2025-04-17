@@ -165,7 +165,7 @@ $(function () {
 
         ajax.done(function(res){
             clear_form_data()
-            flash_message("Pet has been Deleted!")
+            flash_message("Success")
         });
 
         ajax.fail(function(res){
@@ -482,7 +482,7 @@ $(function () {
 
         ajax.done(function(res){
             clear_item_form_data()
-            flash_item_message("Item has been Deleted!")
+            flash_item_message("Success")
         });
 
         ajax.fail(function(res){
