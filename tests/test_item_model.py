@@ -145,13 +145,12 @@ class TestItemModel(TestCase):
     def test_deserialize_valid_data(self):
         """Test deserialization with valid data"""
 
-        valid_data = {"name": "Laptop", "price": 1200.99, "quantity": 2, "order_id": 1}
+        valid_data = {"name": "Laptop", "price": 1200.99, "quantity": 2}
 
         item = Item().deserialize(valid_data)
         self.assertEqual(item.name, "Laptop")
         self.assertEqual(item.price, 1200.99)
         self.assertEqual(item.quantity, 2)
-        self.assertEqual(item.order_id, 1)
 
     def test_deserialize_missing_field(self):
         """Test deserialization with missing required field"""

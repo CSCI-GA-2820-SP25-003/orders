@@ -51,7 +51,6 @@ class Item(db.Model, PersistentBase):
             self.price = float(data["price"])
             self.quantity = int(data["quantity"])
 
-            self.order_id = data.get("order_id")
         except KeyError as error:
             raise DataValidationError(
                 "Invalid Item: missing " + error.args[0]

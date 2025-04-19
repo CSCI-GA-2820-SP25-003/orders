@@ -59,7 +59,7 @@ $(function () {
         
         let ajax = $.ajax({
             type: "POST",
-            url: "/orders",
+            url: "/api/orders",
             contentType: "application/json",
             data: JSON.stringify(data),
         });
@@ -101,7 +101,7 @@ $(function () {
 
         let ajax = $.ajax({
             type: "PUT",
-            url: `/orders/${order_id}`,
+            url: `/api/orders/${order_id}`,
             contentType: "application/json",
             data: JSON.stringify(data)
         });
@@ -128,7 +128,7 @@ $(function () {
 
         let ajax = $.ajax({
             type: "GET",
-            url: `/orders/${order_id}`,
+            url: `/api/orders/${order_id}`,
             contentType: "application/json",
             data: '',
         })
@@ -141,7 +141,7 @@ $(function () {
 
         ajax.fail(function(res){
             clear_form_data()
-            flash_message(res.responseJSON.message)
+            flash_message("404 Not Found")
         });
 
     });
@@ -158,7 +158,7 @@ $(function () {
 
         let ajax = $.ajax({
             type: "DELETE",
-            url: `/orders/${order_id}`,
+            url: `/api/orders/${order_id}`,
             contentType: "application/json",
             data: '',
         })
@@ -184,7 +184,7 @@ $(function () {
 
         let ajax = $.ajax({
             type: "PUT",
-            url: `/orders/${order_id}/cancel`,
+            url: `/api/orders/${order_id}/cancel`,
             contentType: "application/json",
             data: '',
         });
@@ -239,7 +239,7 @@ $(function () {
 
         let ajax = $.ajax({
             type: "GET",
-            url: `/orders${queryString ? '?' + queryString : ''}`,
+            url: `/api/orders${queryString ? '?' + queryString : ''}`,
             contentType: "application/json",
             data: ''
         });
@@ -257,10 +257,10 @@ $(function () {
             table += '<th class="col-md-2">Status</th>'
             table += '</tr></thead><tbody>'
             let firstOrder = "";
-            for(let i = 0; i < res.orders.length; i++) {
-                let order = res.orders[i];
+            for(let i = 0; i < res.length; i++) {
+                let order = res[i];
                 let item = order.items[0] || {}; // Get first item or empty object if no items
-                table +=  `<tr id="row_${i}"><td>${order.id}</td><td>${order.customer_name}</td><td>${item.name || ''}</td><td>${item.quantity}</td><td>${item.price || ''}</td><td>${order.status}</td></tr>`;
+                table +=  `<tr id="row_${i}"><td>${order.id}</td><td>${order.customer_name}</td><td>${item.name || ''}</td><td>${item.quantity || ''}</td><td>${item.price || ''}</td><td>${order.status}</td></tr>`;
                 if (i == 0) {
                     firstOrder = order;
                 }
@@ -330,7 +330,7 @@ $(function () {
 
         let ajax = $.ajax({
             type: "PUT",
-            url: `/orders/${order_id}/items/${item_id}`,
+            url: `/api/orders/${order_id}/items/${item_id}`,
             contentType: "application/json",
             data: JSON.stringify(data)
         });
@@ -365,7 +365,7 @@ $(function () {
 
         let ajax = $.ajax({
             type: "POST",
-            url: `/orders/${order_id}/items`,
+            url: `/api/orders/${order_id}/items`,
             contentType: "application/json",
             data: JSON.stringify(data)
         });
@@ -376,7 +376,7 @@ $(function () {
         });
 
         ajax.fail(function(res){
-            flash_item_message(res.responseJSON.message)
+            flash_item_message(res.responseJSON.error)
         });
     });
 
@@ -392,7 +392,7 @@ $(function () {
 
         let ajax = $.ajax({
             type: "GET",
-            url: `/orders/${order_id}/items/${item_id}`,
+            url: `/api/orders/${order_id}/items/${item_id}`,
             contentType: "application/json",
             data: ''
         });
@@ -419,7 +419,7 @@ $(function () {
 
         let ajax = $.ajax({
             type: "GET",
-            url: `/orders/${order_id}/items`,
+            url: `/api/orders/${order_id}/items`,
             contentType: "application/json",
             data: ''
         });
@@ -475,7 +475,7 @@ $(function () {
 
         let ajax = $.ajax({
             type: "DELETE",
-            url: `/orders/${order_id}/items/${item_id}`,
+            url: `/api/orders/${order_id}/items/${item_id}`,
             contentType: "application/json",
             data: ''
         });
