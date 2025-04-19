@@ -260,7 +260,7 @@ $(function () {
             for(let i = 0; i < res.length; i++) {
                 let order = res[i];
                 let item = order.items[0] || {}; // Get first item or empty object if no items
-                table +=  `<tr id="row_${i}"><td>${order.id}</td><td>${order.customer_name}</td><td>${item.name || ''}</td><td>${item.quantity}</td><td>${item.price || ''}</td><td>${order.status}</td></tr>`;
+                table +=  `<tr id="row_${i}"><td>${order.id}</td><td>${order.customer_name}</td><td>${item.name || ''}</td><td>${item.quantity || ''}</td><td>${item.price || ''}</td><td>${order.status}</td></tr>`;
                 if (i == 0) {
                     firstOrder = order;
                 }
