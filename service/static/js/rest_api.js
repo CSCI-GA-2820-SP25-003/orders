@@ -59,7 +59,7 @@ $(function () {
         
         let ajax = $.ajax({
             type: "POST",
-            url: "/orders",
+            url: "/api/orders",
             contentType: "application/json",
             data: JSON.stringify(data),
         });
@@ -101,7 +101,7 @@ $(function () {
 
         let ajax = $.ajax({
             type: "PUT",
-            url: `/orders/${order_id}`,
+            url: `/api/orders/${order_id}`,
             contentType: "application/json",
             data: JSON.stringify(data)
         });
@@ -128,7 +128,7 @@ $(function () {
 
         let ajax = $.ajax({
             type: "GET",
-            url: `/orders/${order_id}`,
+            url: `/api/orders/${order_id}`,
             contentType: "application/json",
             data: '',
         })
@@ -158,7 +158,7 @@ $(function () {
 
         let ajax = $.ajax({
             type: "DELETE",
-            url: `/orders/${order_id}`,
+            url: `/api/orders/${order_id}`,
             contentType: "application/json",
             data: '',
         })
@@ -184,7 +184,7 @@ $(function () {
 
         let ajax = $.ajax({
             type: "PUT",
-            url: `/orders/${order_id}/cancel`,
+            url: `/api/orders/${order_id}/cancel`,
             contentType: "application/json",
             data: '',
         });
@@ -239,42 +239,37 @@ $(function () {
 
         let ajax = $.ajax({
             type: "GET",
-            url: `/orders${queryString ? '?' + queryString : ''}`,
+            url: `/api/orders${queryString ? '?' + queryString : ''}`,
             contentType: "application/json",
             data: ''
         });
 
         ajax.done(function(res){
-            //alert(res.toSource())
             $("#search_results").empty();
-            let table = '<table class="table table-striped" cellpadding="10">'
-            table += '<thead><tr>'
-            table += '<th class="col-md-2">ID</th>'
-            table += '<th class="col-md-2">Customer Name</th>'
-            table += '<th class="col-md-2">Product Name</th>'
-            table += '<th class="col-md-2">Quantity</th>'
-            table += '<th class="col-md-2">Price</th>'
-            table += '<th class="col-md-2">Status</th>'
-            table += '</tr></thead><tbody>'
+            let rows = "";
             let firstOrder = "";
-            for(let i = 0; i < res.orders.length; i++) {
-                let order = res.orders[i];
-                let item = order.items[0] || {}; // Get first item or empty object if no items
-                table +=  `<tr id="row_${i}"><td>${order.id}</td><td>${order.customer_name}</td><td>${item.name || ''}</td><td>${item.quantity}</td><td>${item.price || ''}</td><td>${order.status}</td></tr>`;
-                if (i == 0) {
-                    firstOrder = order;
-                }
+            for (let i = 0; i < res.length; i++) {
+                let order = res[i];
+                let item = order.items[0] || {};
+                rows += `<tr>
+                            <td>${order.id}</td>
+                            <td>${order.customer_name}</td>
+                            <td>${item.name || ''}</td>
+                            <td>${item.quantity || ''}</td>
+                            <td>${item.price || ''}</td>
+                            <td>${order.status}</td>
+                         </tr>`;
+                if (i === 0) firstOrder = order;
             }
-            table += '</tbody></table>';
-            $("#search_results").append(table);
-
-            // copy the first result to the form
-            if (firstOrder != "") {
-                update_form_data(firstOrder)
+            $("#search_results").append(rows);
+        
+            if (firstOrder !== "") {
+                update_form_data(firstOrder);
             }
-
-            flash_message("Success")
+        
+            flash_message("Success");
         });
+        
 
         ajax.fail(function(res){
             flash_message(res.responseJSON.message)
@@ -330,7 +325,7 @@ $(function () {
 
         let ajax = $.ajax({
             type: "PUT",
-            url: `/orders/${order_id}/items/${item_id}`,
+            url: `/api/orders/${order_id}/items/${item_id}`,
             contentType: "application/json",
             data: JSON.stringify(data)
         });
@@ -365,7 +360,7 @@ $(function () {
 
         let ajax = $.ajax({
             type: "POST",
-            url: `/orders/${order_id}/items`,
+            url: `/api/orders/${order_id}/items`,
             contentType: "application/json",
             data: JSON.stringify(data)
         });
@@ -392,7 +387,7 @@ $(function () {
 
         let ajax = $.ajax({
             type: "GET",
-            url: `/orders/${order_id}/items/${item_id}`,
+            url: `/api/orders/${order_id}/items/${item_id}`,
             contentType: "application/json",
             data: ''
         });
@@ -419,7 +414,7 @@ $(function () {
 
         let ajax = $.ajax({
             type: "GET",
-            url: `/orders/${order_id}/items`,
+            url: `/api/orders/${order_id}/items`,
             contentType: "application/json",
             data: ''
         });
@@ -475,7 +470,7 @@ $(function () {
 
         let ajax = $.ajax({
             type: "DELETE",
-            url: `/orders/${order_id}/items/${item_id}`,
+            url: `/api/orders/${order_id}/items/${item_id}`,
             contentType: "application/json",
             data: ''
         });

@@ -71,7 +71,7 @@ class TestYourResourceService(TestCase):
         order.status = "CREATED"
         order.create()
 
-        response = self.client.put(f"orders/{order.id}/cancel")
+        response = self.client.put(f"/api/orders/{order.id}/cancel")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_cancel_bad_order(self):
@@ -80,7 +80,7 @@ class TestYourResourceService(TestCase):
         order.status = "CREATED"
         order.create()
 
-        response = self.client.put("orders/0/cancel")
+        response = self.client.put("/api/orders/0/cancel")
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_update_order_status(self):
@@ -93,13 +93,13 @@ class TestYourResourceService(TestCase):
         item = ItemFactory()
 
         response = self.client.post(
-            f"orders/{order.id}/items",
+            f"/api/orders/{order.id}/items",
             json=item.serialize(),
             content_type="application/json",
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-        response = self.client.put(f"orders/{order.id}/update")
+        response = self.client.put(f"/api/orders/{order.id}/update")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(order.status.value, "CREATED")
 
@@ -113,13 +113,13 @@ class TestYourResourceService(TestCase):
         item = ItemFactory()
 
         response = self.client.post(
-            f"orders/{order.id}/items",
+            f"/api/orders/{order.id}/items",
             json=item.serialize(),
             content_type="application/json",
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-        response = self.client.put("orders/0/update")
+        response = self.client.put("/api/orders/0/update")
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_update_empty_order(self):
@@ -128,7 +128,7 @@ class TestYourResourceService(TestCase):
         order.status = "CREATED"
         order.create()
 
-        response = self.client.put(f"orders/{order.id}/update")
+        response = self.client.put(f"/api/orders/{order.id}/update")
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_update_completed_order(self):
@@ -141,13 +141,13 @@ class TestYourResourceService(TestCase):
         item = ItemFactory()
 
         response = self.client.post(
-            f"orders/{order.id}/items",
+            f"/api/orders/{order.id}/items",
             json=item.serialize(),
             content_type="application/json",
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-        response = self.client.put(f"orders/{order.id}/update")
+        response = self.client.put(f"/api/orders/{order.id}/update")
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_update_cancelled_order(self):
@@ -160,11 +160,11 @@ class TestYourResourceService(TestCase):
         item = ItemFactory()
 
         response = self.client.post(
-            f"orders/{order.id}/items",
+            f"/api/orders/{order.id}/items",
             json=item.serialize(),
             content_type="application/json",
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-        response = self.client.put(f"orders/{order.id}/update")
+        response = self.client.put(f"/api/orders/{order.id}/update")
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)

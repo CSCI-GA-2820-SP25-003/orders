@@ -71,7 +71,7 @@ class TestYourResourceService(TestCase):
 
         for _ in range(num):
             order = OrderFactory()
-            response = self.client.post("/orders", json=order.serialize())
+            response = self.client.post("/api/orders", json=order.serialize())
             self.assertEqual(
                 response.status_code,
                 status.HTTP_201_CREATED,
@@ -103,7 +103,7 @@ class TestYourResourceService(TestCase):
         """Create an Order"""
         order = OrderFactory()
         response = self.client.post(
-            "/orders", json=order.serialize(), content_type="application/json"
+            "/api/orders", json=order.serialize(), content_type="application/json"
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         json = response.get_json()
@@ -114,7 +114,7 @@ class TestYourResourceService(TestCase):
         """Not Create an Order with invalid data"""
         invalid_order = {"customer_name": "", "status": "INVALID"}
         response = self.client.post(
-            "/orders", json=invalid_order, content_type="application/json"
+            "/api/orders", json=invalid_order, content_type="application/json"
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
@@ -122,7 +122,7 @@ class TestYourResourceService(TestCase):
         """Not Create an Order with missing customer_name"""
         missing_data_order = {"status": "INVALID"}
         response = self.client.post(
-            "/orders", json=missing_data_order, content_type="application/json"
+            "/api/orders", json=missing_data_order, content_type="application/json"
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
@@ -132,7 +132,7 @@ class TestYourResourceService(TestCase):
         extra_data_order = order.serialize()
         extra_data_order["extra_field"] = "extra_value"
         response = self.client.post(
-            "/orders", json=extra_data_order, content_type="application/json"
+            "/api/orders", json=extra_data_order, content_type="application/json"
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         json = response.get_json()
@@ -144,7 +144,7 @@ class TestYourResourceService(TestCase):
     def test_delete_order(self):
         """Delete an order based on its order id"""
         order = self._create_orders(1)[0]
-        resp = self.client.delete(f"/orders/{order.id}")
+        resp = self.client.delete(f"/api/orders/{order.id}")
         self.assertEqual(resp.status_code, status.HTTP_204_NO_CONTENT)
 
         # check if data is empty
@@ -152,7 +152,7 @@ class TestYourResourceService(TestCase):
 
         # check if the database returns 404
         resp = self.client.get(
-            f"orders/{order.id}",
+            f"/api/orders/{order.id}",
             content_type="application/json",
         )
         self.assertEqual(resp.status_code, status.HTTP_404_NOT_FOUND)
@@ -163,7 +163,7 @@ class TestYourResourceService(TestCase):
         _ = self._create_orders(1)[0]
 
         # delete an order with no order id
-        resp = self.client.delete("/orders/0")
+        resp = self.client.delete("/api/orders/0")
         self.assertEqual(resp.status_code, status.HTTP_204_NO_CONTENT)
 
     # TEST CASES FOR UPDATE ORDERS ########################
@@ -180,7 +180,7 @@ class TestYourResourceService(TestCase):
 
         # send the update request, update the order
         resp = self.client.put(
-            f"/orders/{order.id}", json=data, content_type="application/json"
+            f"/api/orders/{order.id}", json=data, content_type="application/json"
         )
 
         # assert that the update was successful
@@ -192,7 +192,7 @@ class TestYourResourceService(TestCase):
         self.assertEqual(updated_order["status"], "SHIPPED")
 
         # verify through a GET request to test whether the updated version is in db now
-        resp = self.client.get(f"/orders/{order.id}")
+        resp = self.client.get(f"/api/orders/{order.id}")
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
 
         get_order = resp.get_json()
@@ -207,7 +207,7 @@ class TestYourResourceService(TestCase):
 
         # try to update an order that doesn't exist (use id 0 which shouldn't exist since the sql starts from 1)
         resp = self.client.put(
-            "/orders/0", json=order.serialize(), content_type="application/json"
+            "/api/orders/0", json=order.serialize(), content_type="application/json"
         )
 
         # assert that update attempt returned NOT FOUND
@@ -225,14 +225,16 @@ class TestYourResourceService(TestCase):
 
         # send update request with invalid data
         resp = self.client.put(
-            f"/orders/{order.id}", json=invalid_data, content_type="application/json"
+            f"/api/orders/{order.id}",
+            json=invalid_data,
+            content_type="application/json",
         )
 
         # the API should return 400 Bad Request for invalid data
         self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
 
         # verify the order was not updated by getting it
-        resp = self.client.get(f"/orders/{order.id}")
+        resp = self.client.get(f"/api/orders/{order.id}")
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
 
         # the original status should remain unchanged
@@ -252,14 +254,16 @@ class TestYourResourceService(TestCase):
 
         # send update request with missing data
         resp = self.client.put(
-            f"/orders/{order.id}", json=incomplete_data, content_type="application/json"
+            f"/api/orders/{order.id}",
+            json=incomplete_data,
+            content_type="application/json",
         )
 
         # the API should return 400 Bad Request for missing data
         self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
 
         # verify the order was not updated by getting it
-        resp = self.client.get(f"/orders/{order.id}")
+        resp = self.client.get(f"/api/orders/{order.id}")
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
 
         # the original customer_name should remain unchanged
@@ -279,7 +283,7 @@ class TestYourResourceService(TestCase):
 
         # send update request with extra data
         resp = self.client.put(
-            f"/orders/{order.id}", json=update_data, content_type="application/json"
+            f"/api/orders/{order.id}", json=update_data, content_type="application/json"
         )
 
         # the update should succeed, ignoring the extra field
@@ -292,7 +296,7 @@ class TestYourResourceService(TestCase):
         self.assertNotIn("extra_field", updated_order)
 
         # verify through a GET request
-        resp = self.client.get(f"/orders/{order.id}")
+        resp = self.client.get(f"/api/orders/{order.id}")
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
 
         get_order = resp.get_json()
@@ -307,7 +311,7 @@ class TestYourResourceService(TestCase):
         order = self._create_orders(1)[0]
         item = ItemFactory()
         response = self.client.post(
-            f"/orders/{order.id}/items",
+            f"/api/orders/{order.id}/items",
             json=item.serialize(),
             content_type="application/json",
         )
@@ -322,7 +326,7 @@ class TestYourResourceService(TestCase):
         order = self._create_orders(1)[0]
         invalid_item = {"name": "", "price": -1, "stock": -1}
         response = self.client.post(
-            f"/orders/{order.id}/items",
+            f"/api/orders/{order.id}/items",
             json=invalid_item,
             content_type="application/json",
         )
@@ -333,7 +337,7 @@ class TestYourResourceService(TestCase):
         order = self._create_orders(1)[0]
         missing_data_item = {"price": 10.0, "stock": 5}
         response = self.client.post(
-            f"/orders/{order.id}/items",
+            f"/api/orders/{order.id}/items",
             json=missing_data_item,
             content_type="application/json",
         )
@@ -346,7 +350,7 @@ class TestYourResourceService(TestCase):
         extra_data_item = item.serialize()
         extra_data_item["extra_field"] = "extra_value"
         response = self.client.post(
-            f"/orders/{order.id}/items",
+            f"/api/orders/{order.id}/items",
             json=extra_data_item,
             content_type="application/json",
         )
@@ -364,7 +368,7 @@ class TestYourResourceService(TestCase):
 
         # create order and assert
         response = self.client.post(
-            "/orders", json=order.serialize(), content_type="application/json"
+            "/api/orders", json=order.serialize(), content_type="application/json"
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
@@ -372,7 +376,7 @@ class TestYourResourceService(TestCase):
         item = ItemFactory()
 
         response = self.client.post(
-            f"orders/{order.id}/items",
+            f"/api/orders/{order.id}/items",
             json=item.serialize(),
             content_type="application/json",
         )
@@ -381,12 +385,12 @@ class TestYourResourceService(TestCase):
         json = response.get_json()
         item_id = json["id"]
         # Delete the item and assert
-        response = self.client.delete(f"/orders/{order.id}/items/{item_id}")
+        response = self.client.delete(f"/api/orders/{order.id}/items/{item_id}")
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
 
         # Assert if order no longer contain the item
         response = self.client.get(
-            f"/orders/{order.id}/items/{item_id}", content_type="application/json"
+            f"/api/orders/{order.id}/items/{item_id}", content_type="application/json"
         )
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
@@ -396,13 +400,13 @@ class TestYourResourceService(TestCase):
 
         # Try and add item to a non existing order
         response = self.client.post(
-            "/orders/0/items",
+            "/api/orders/0/items",
             json=item.serialize(),
             content_type="application/json",
         )
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
-        response = self.client.delete(f"/orders/0/items/{item.id}")
+        response = self.client.delete(f"/api/orders/0/items/{item.id}")
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_delete_item_no_id(self):
@@ -411,7 +415,7 @@ class TestYourResourceService(TestCase):
         order = self._create_orders(1)[0]
 
         # try to delete an item from the order
-        response = self.client.delete(f"/orders/{order.id}/items/0")
+        response = self.client.delete(f"/api/orders/{order.id}/items/0")
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
 
     # TEST CASES FOR READING AN ORDER ################
@@ -421,7 +425,7 @@ class TestYourResourceService(TestCase):
         test_order = orders[0]
 
         response = self.client.get(
-            f"/orders/{test_order.id}", content_type="application/json"
+            f"/api/orders/{test_order.id}", content_type="application/json"
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
@@ -431,7 +435,7 @@ class TestYourResourceService(TestCase):
         test_order = orders[0]
 
         response = self.client.get(
-            f"/orders/{test_order.id + 1}", content_type="application/json"
+            f"/api/orders/{test_order.id + 1}", content_type="application/json"
         )
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
@@ -440,7 +444,7 @@ class TestYourResourceService(TestCase):
         # orders = self._create_orders(1)
 
         response = self.client.get(
-            f"/orders/{'invalid id'}", content_type="application/json"
+            f"/api/orders/{'invalid id'}", content_type="application/json"
         )
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
@@ -453,7 +457,7 @@ class TestYourResourceService(TestCase):
         item.order_id = test_order.id
 
         response = self.client.post(
-            f"/orders/{test_order.id}/items",
+            f"/api/orders/{test_order.id}/items",
             json=item.serialize(),
             content_type="application/json",
         )
@@ -461,7 +465,7 @@ class TestYourResourceService(TestCase):
 
         item_id = response.get_json()["id"]
 
-        response = self.client.get(f"/orders/{test_order.id}/items/{item_id}")
+        response = self.client.get(f"/api/orders/{test_order.id}/items/{item_id}")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def read_item_in_order_doesnt_exist(self):
@@ -471,13 +475,13 @@ class TestYourResourceService(TestCase):
         item = ItemFactory()
 
         response = self.client.post(
-            f"/orders/{test_order.id}/items",
+            f"/api/orders/{test_order.id}/items",
             json=item.serialize(),
             content_type="application/json",
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-        response = self.client.get(f"/orders/{test_order.id}/items/{item.id + 1}")
+        response = self.client.get(f"/api/orders/{test_order.id}/items/{item.id + 1}")
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     # TEST CASES FOR UPDATE ITEMS ########################
@@ -490,7 +494,7 @@ class TestYourResourceService(TestCase):
         # create an item for the order
         item = ItemFactory()
         response = self.client.post(
-            f"/orders/{order.id}/items",
+            f"/api/orders/{order.id}/items",
             json=item.serialize(),
             content_type="application/json",
         )
@@ -509,7 +513,7 @@ class TestYourResourceService(TestCase):
 
         # dend update request to update the item
         response = self.client.put(
-            f"/orders/{order.id}/items/{item_id}",
+            f"/api/orders/{order.id}/items/{item_id}",
             json=update_data,
             content_type="application/json",
         )
@@ -524,7 +528,7 @@ class TestYourResourceService(TestCase):
         self.assertEqual(updated_item["quantity"], 10)
 
         # verify through a GET request to check if the updated version is in db now
-        response = self.client.get(f"/orders/{order.id}/items/{item_id}")
+        response = self.client.get(f"/api/orders/{order.id}/items/{item_id}")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         get_item = response.get_json()
@@ -540,7 +544,7 @@ class TestYourResourceService(TestCase):
         # create an item for the order
         item = ItemFactory()
         response = self.client.post(
-            f"/orders/{order.id}/items",
+            f"/api/orders/{order.id}/items",
             json=item.serialize(),
             content_type="application/json",
         )
@@ -555,7 +559,7 @@ class TestYourResourceService(TestCase):
         non_existing_order_id = 0
 
         response = self.client.put(
-            f"/orders/{non_existing_order_id}/items/{item_id}",
+            f"/api/orders/{non_existing_order_id}/items/{item_id}",
             json=item_data,
             content_type="application/json",
         )
@@ -576,7 +580,7 @@ class TestYourResourceService(TestCase):
         non_existing_item_id = 0
 
         response = self.client.put(
-            f"/orders/{order.id}/items/{non_existing_item_id}",
+            f"/api/orders/{order.id}/items/{non_existing_item_id}",
             json=item.serialize(),
             content_type="application/json",
         )
@@ -595,7 +599,7 @@ class TestYourResourceService(TestCase):
         non_existing_item_id = 0
 
         response = self.client.put(
-            f"/orders/{non_existing_order_id}/items/{non_existing_item_id}",
+            f"/api/orders/{non_existing_order_id}/items/{non_existing_item_id}",
             json=item.serialize(),
             content_type="application/json",
         )
@@ -613,7 +617,7 @@ class TestYourResourceService(TestCase):
         # create an item for order1
         item_1 = ItemFactory()
         response = self.client.post(
-            f"/orders/{order1.id}/items",
+            f"/api/orders/{order1.id}/items",
             json=item_1.serialize(),
             content_type="application/json",
         )
@@ -626,7 +630,7 @@ class TestYourResourceService(TestCase):
         # create an item for order2
         item_2 = ItemFactory()
         response = self.client.post(
-            f"/orders/{order2.id}/items",
+            f"/api/orders/{order2.id}/items",
             json=item_2.serialize(),
             content_type="application/json",
         )
@@ -634,7 +638,7 @@ class TestYourResourceService(TestCase):
 
         # try to update the item through order2
         response = self.client.put(
-            f"/orders/{order2.id}/items/{item_1_id}",
+            f"/api/orders/{order2.id}/items/{item_1_id}",
             json=item_1_data,
             content_type="application/json",
         )
@@ -651,7 +655,7 @@ class TestYourResourceService(TestCase):
         # create an item for the order
         item = ItemFactory()
         response = self.client.post(
-            f"/orders/{order.id}/items",
+            f"/api/orders/{order.id}/items",
             json=item.serialize(),
             content_type="application/json",
         )
@@ -666,7 +670,7 @@ class TestYourResourceService(TestCase):
 
         # send update request with invalid data
         response = self.client.put(
-            f"/orders/{order.id}/items/{item_id}",
+            f"/api/orders/{order.id}/items/{item_id}",
             json=item_data,
             content_type="application/json",
         )
@@ -675,7 +679,7 @@ class TestYourResourceService(TestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
         # verify the item was not updated
-        response = self.client.get(f"/orders/{order.id}/items/{item_id}")
+        response = self.client.get(f"/api/orders/{order.id}/items/{item_id}")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         get_item = response.get_json()
@@ -690,7 +694,7 @@ class TestYourResourceService(TestCase):
         # create an item for the order
         item = ItemFactory()
         response = self.client.post(
-            f"/orders/{order.id}/items",
+            f"/api/orders/{order.id}/items",
             json=item.serialize(),
             content_type="application/json",
         )
@@ -709,7 +713,7 @@ class TestYourResourceService(TestCase):
 
         # send update request with missing data
         response = self.client.put(
-            f"/orders/{order.id}/items/{item_id}",
+            f"/api/orders/{order.id}/items/{item_id}",
             json=incomplete_data,
             content_type="application/json",
         )
@@ -718,7 +722,7 @@ class TestYourResourceService(TestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
         # verify the item was not updated
-        response = self.client.get(f"/orders/{order.id}/items/{item_id}")
+        response = self.client.get(f"/api/orders/{order.id}/items/{item_id}")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         get_item = response.get_json()
@@ -733,7 +737,7 @@ class TestYourResourceService(TestCase):
         # create an item for the order
         item = ItemFactory()
         response = self.client.post(
-            f"/orders/{order.id}/items",
+            f"/api/orders/{order.id}/items",
             json=item.serialize(),
             content_type="application/json",
         )
@@ -750,7 +754,7 @@ class TestYourResourceService(TestCase):
 
         # send update request with extra data
         response = self.client.put(
-            f"/orders/{order.id}/items/{item_id}",
+            f"/api/orders/{order.id}/items/{item_id}",
             json=update_data,
             content_type="application/json",
         )
@@ -764,7 +768,7 @@ class TestYourResourceService(TestCase):
         self.assertNotIn("extra_field", updated_item)
 
         # verify through a GET request
-        response = self.client.get(f"/orders/{order.id}/items/{item_id}")
+        response = self.client.get(f"/api/orders/{order.id}/items/{item_id}")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         get_item = response.get_json()
@@ -781,19 +785,14 @@ class TestYourResourceService(TestCase):
             orders.append(order)
 
         # Send a request to the list endpoint
-        resp = self.client.get("/orders")
+        resp = self.client.get("/api/orders")
 
         # Check response
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
         data = resp.get_json()
 
-        # Check structure of the response
-        self.assertIn("orders", data)
-        self.assertIn("metadata", data)
-
         # Check that we got all the orders we created
-        self.assertEqual(len(data["orders"]), 5)
-        self.assertEqual(data["metadata"]["total_items"], 5)
+        self.assertEqual(len(data), 5)
 
     def test_list_orders_by_status(self):
         """Test listing orders filtered by status"""
@@ -823,7 +822,7 @@ class TestYourResourceService(TestCase):
         )
 
         # Send request to filter by this status
-        resp = self.client.get(f"/orders?status={status_value}")
+        resp = self.client.get(f"/api/orders?status={status_value}")
 
         # Check response
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
@@ -831,10 +830,10 @@ class TestYourResourceService(TestCase):
         print(f"Response data: {data}")
 
         # Ensure we found the expected number of orders
-        self.assertEqual(len(data["orders"]), expected_count)
+        self.assertEqual(len(data), expected_count)
 
         # Verify all returned orders have the right status
-        for order_data in data["orders"]:
+        for order_data in data:
             self.assertEqual(order_data["status"], status_value)
 
     def test_list_orders_with_pagination(self):
@@ -846,27 +845,27 @@ class TestYourResourceService(TestCase):
             orders.append(order)
 
         # Get first page (default is 10 per page)
-        resp = self.client.get("/orders")
+        resp = self.client.get("/api/orders")
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
         data = resp.get_json()
-        self.assertEqual(len(data["orders"]), 10)
-        self.assertEqual(data["metadata"]["page"], 1)
-        self.assertEqual(data["metadata"]["total_items"], 15)
+        self.assertEqual(len(data), 10)
+        # self.assertEqual(data["metadata"]["page"], 1)
+        # self.assertEqual(data["metadata"]["total_items"], 15)
 
         # Get second page (remaining 5 orders)
-        resp = self.client.get("/orders?page=2")
+        resp = self.client.get("/api/orders?page=2")
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
         data = resp.get_json()
-        self.assertEqual(len(data["orders"]), 5)
-        self.assertEqual(data["metadata"]["page"], 2)
+        self.assertEqual(len(data), 5)
+        # self.assertEqual(data["metadata"]["page"], 2)
 
         # Test custom page size
-        resp = self.client.get("/orders?page=1&page_size=5")
+        resp = self.client.get("/api/orders?page=1&page_size=5")
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
         data = resp.get_json()
-        self.assertEqual(len(data["orders"]), 5)
-        self.assertEqual(data["metadata"]["page_size"], 5)
-        self.assertEqual(data["metadata"]["total_pages"], 3)
+        self.assertEqual(len(data), 5)
+        # self.assertEqual(data["metadata"]["page_size"], 5)
+        # self.assertEqual(data["metadata"]["total_pages"], 3)
 
     def test_list_items_order_not_found(self):
         """It should return 404 Not Found when attempting to list items for a non-existent order"""
@@ -878,7 +877,7 @@ class TestYourResourceService(TestCase):
         self.assertIsNone(order)
 
         # Send a request to list items for this non-existent order
-        response = self.client.get(f"/orders/{non_existent_order_id}/items")
+        response = self.client.get(f"/api/orders/{non_existent_order_id}/items")
 
         # Check that we get a 404 response
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
@@ -902,7 +901,7 @@ class TestYourResourceService(TestCase):
         for _ in range(3):
             item = ItemFactory()
             response = self.client.post(
-                f"/orders/{order.id}/items",
+                f"/api/orders/{order.id}/items",
                 json=item.serialize(),
                 content_type="application/json",
             )
@@ -910,7 +909,7 @@ class TestYourResourceService(TestCase):
             items.append(response.get_json())
 
         # Send a request to list items
-        response = self.client.get(f"/orders/{order.id}/items")
+        response = self.client.get(f"/api/orders/{order.id}/items")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         # Check the response

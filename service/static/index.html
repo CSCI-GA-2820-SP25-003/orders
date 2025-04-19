@@ -102,19 +102,24 @@
       </div> <!-- end Form -->
 
       <!-- Search Results -->
-      <div class="table-responsive col-md-12" id="search_results">
-        <table class="table table-striped">
+      <div class="table-responsive col-md-12">
+        <table class="table table-striped" id="search_results_table">
           <thead>
-          <tr>
-            <th class="col-md-1">ID</th>
-            <th class="col-md-2">Customer Name</th>
-            <th class="col-md-2">Product Name</th>
-            <th class="col-md-2">Price</th>
-            <th class="col-md-2">Status</th>
-          </tr>
+            <tr>
+              <th class="col-md-2">ID</th>
+              <th class="col-md-2">Customer Name</th>
+              <th class="col-md-2">Product Name</th>
+              <th class="col-md-2">Quantity</th>
+              <th class="col-md-2">Price</th>
+              <th class="col-md-2">Status</th>
+            </tr>
           </thead>
+          <tbody id="search_results">
+            <!-- rows will be injected here -->
+          </tbody>
         </table>
       </div>
+      
 
       <div class="container">
         <div class="page-header">
