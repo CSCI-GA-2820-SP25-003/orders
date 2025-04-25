@@ -10,7 +10,6 @@ spec:
     description: The git revision
   - name: git-repo-name
     description: The name of the deployment to be created / patched
-
   resourcetemplates:
   - apiVersion: tekton.dev/v1beta1
     kind: PipelineRun
