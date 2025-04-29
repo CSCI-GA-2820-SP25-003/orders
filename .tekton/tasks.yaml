@@ -23,7 +23,7 @@ spec:
   params:
     - name: image
       description: The container image with pylint
-      default: docker.io/python:3.11-slim  
+      default: registry.redhat.io/ubi8/python-311 
     - name: path
       description: The path to the module which should be analyzed by pylint
       default: "."
@@ -232,9 +232,9 @@ spec:
       command: ["/bin/bash", "-c"]
       args:
         - |-
-          echo Applying manifests in $(inputs.params.manifest-dir) directory
+          echo "Applying manifests in $(inputs.params.manifest-dir) directory"
           oc apply -f $(inputs.params.manifest-dir)
-          echo -----------------------------------
+          echo "-----------------------------------"
 
 ---
 apiVersion: tekton.dev/v1beta1
