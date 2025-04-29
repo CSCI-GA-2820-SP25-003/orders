@@ -22,7 +22,7 @@ Handles all of the HTTP Error Codes returning JSON messages
 from flask import current_app as app  # Import Flask application
 from service.routes import api
 from service.models import DataValidationError
-from . import status
+from service.common import status
 
 
 ######################################################################
