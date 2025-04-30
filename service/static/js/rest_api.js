@@ -215,12 +215,19 @@ $(function () {
     // ****************************************
 
     $("#search-btn").click(function () {
+        let order_id = $("#order_order_id").val();
         let customer_name = $("#order_customer_name").val();
         let status = $("#order_status").val();
         let product_name = $("#order_product_name").val();
 
         let queryString = "";
+        if (order_id) {
+            queryString += "order_id=" + order_id;
+        }
         if (customer_name) {
+            if (queryString.length > 0) {
+                queryString += '&';
+            }
             queryString += 'customer_name=' + customer_name;
         }
         if (status) {
