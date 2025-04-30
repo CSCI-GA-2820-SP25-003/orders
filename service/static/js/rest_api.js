@@ -202,11 +202,19 @@ $(function () {
     // ****************************************
 
     $("#search-btn").click(function () {
+        let order_id = $("#order_order_id").val();
         let customer_name = $("#order_customer_name").val();
         let status = $("#order_status").val();
+        let product_name = $("#order_product_name").val();
 
         let queryString = "";
+        if (order_id) {
+            queryString += "order_id=" + order_id;
+        }
         if (customer_name) {
+            if (queryString.length > 0) {
+                queryString += '&';
+            }
             queryString += 'customer_name=' + customer_name;
         }
         if (status) {
@@ -214,6 +222,12 @@ $(function () {
                 queryString += '&';
             }
             queryString += 'status=' + status;
+        }
+        if (product_name) {
+            if (queryString.length > 0) {
+                queryString += '&';
+            }
+            queryString += 'product_name=' + product_name;
         }
 
         $("#flash_message").empty();
@@ -232,13 +246,16 @@ $(function () {
             table += '<thead><tr>'
             table += '<th class="col-md-2">ID</th>'
             table += '<th class="col-md-2">Customer Name</th>'
+            table += '<th class="col-md-2">Product Name</th>'
+            table += '<th class="col-md-2">Quantity</th>'
+            table += '<th class="col-md-2">Price</th>'
             table += '<th class="col-md-2">Status</th>'
             table += '</tr></thead><tbody>'
             let firstOrder = "";
             for(let i = 0; i < res.length; i++) {
                 let order = res[i];
                 let item = order.items[0] || {}; // Get first item or empty object if no items
-                table +=  `<tr id="row_${i}"><td>${order.id}</td><td>${order.customer_name}</td><td>${order.status}</td></tr>`;
+                table +=  `<tr id="row_${i}"><td>${order.id}</td><td>${order.customer_name}</td><td>${item.name || ''}</td><td>${item.quantity || ''}</td><td>${item.price || ''}</td><td>${order.status}</td></tr>`;
                 if (i == 0) {
                     firstOrder = order;
                 }
