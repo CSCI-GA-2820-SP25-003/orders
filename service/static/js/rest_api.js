@@ -193,7 +193,6 @@ $(function () {
     $("#clear-btn").click(function () {
         $("#order_order_id").val("");
         $("#flash_message").empty();
-        $("#search_results").empty();
         clear_form_data()
     });
 
@@ -495,7 +494,6 @@ $(function () {
         $("#order_item_product_name").val("");
         $("#order_item_quantity").val("");
         $("#order_item_price").val("");
-        $("#search_results_item").empty();
         $("#flash_message_item").empty();
         clear_form_data()
     });
