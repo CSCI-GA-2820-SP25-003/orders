@@ -41,9 +41,9 @@ $(function () {
     $("#create-btn").click(function () {
         let customer_name = $("#order_customer_name").val();
         let status = $("#order_status").val();
-        // let product_name = $("#order_product_name").val();
-        // let quantity = $("#order_quantity").val();
-        // let price = $("#order_price").val();
+        let product_name = $("#order_product_name").val();
+        let quantity = $("#order_quantity").val();
+        let price = $("#order_price").val();
 
         let data = {
             "customer_name": customer_name,
