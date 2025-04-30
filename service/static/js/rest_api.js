@@ -41,18 +41,13 @@ $(function () {
     $("#create-btn").click(function () {
         let customer_name = $("#order_customer_name").val();
         let status = $("#order_status").val();
-        let product_name = $("#order_product_name").val();
-        let quantity = $("#order_quantity").val();
-        let price = $("#order_price").val();
+        // let product_name = $("#order_product_name").val();
+        // let quantity = $("#order_quantity").val();
+        // let price = $("#order_price").val();
 
         let data = {
             "customer_name": customer_name,
             "status": status,
-            "items": [{
-                "name": product_name,
-                "quantity": parseInt(quantity),
-                "price": parseFloat(price)
-            }]
         };
 
         $("#flash_message").empty();
@@ -83,18 +78,10 @@ $(function () {
         let order_id = $("#order_order_id").val();
         let customer_name = $("#order_customer_name").val();
         let status = $("#order_status").val();
-        let product_name = $("#order_product_name").val();
-        let quantity = $("#order_quantity").val();
-        let price = $("#order_price").val();
 
         let data = {
             "customer_name": customer_name,
             "status": status,
-            "items": [{
-                "name": product_name,
-                "quantity": parseInt(quantity),
-                "price": parseFloat(price)
-            }]
         };
 
         $("#flash_message").empty();
