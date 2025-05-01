@@ -8,7 +8,7 @@ spec:
       name: GIT_REPO
       type: string
     - default: master
-      description: the reference (branch or ref)
+      description: The reference (branch or ref)
       name: GIT_REF
       type: string
     - default: orders
@@ -19,8 +19,8 @@ spec:
       description: The name of the image to build
       name: IMAGE_NAME
       type: string
-    - default: 'https://orders-coyigbo-dev.apps.rm3.7wse.p1.openshiftapps.com/'
-      description: Orders BASE_URL
+    - default: 'https://orders-ayushnaique28-dev.apps.rm2.thpm.p1.openshiftapps.com/'
+      description: The root url to orders microservice
       name: BASE_URL
       type: string
   tasks:
@@ -67,15 +67,13 @@ spec:
     - name: pylint
       params:
         - name: image
-          value: 'docker.io/python:3.11-slim'
+          value: 'quay.io/rofrano/python:3.11-slim'
         - name: path
           value: .
         - name: args
           value: []
         - name: requirements-file
           value: requirements.txt
-        - name: MODULE_PATH
-          value: service
       runAfter:
         - git-clone
       taskRef:
@@ -84,7 +82,7 @@ spec:
       workspaces:
         - name: source
           workspace: pipeline-workspace
-    - name: testing
+    - name: pytest-env
       params:
         - name: pytest-args
           value: []
@@ -127,7 +125,7 @@ spec:
           value: 'false'
       runAfter:
         - pylint
-        - testing
+        - pytest-env
       taskRef:
         kind: Task
         name: buildah

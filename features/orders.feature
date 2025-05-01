@@ -9,7 +9,6 @@ Background:
         | Customer One   | CREATED   | T-Shirt       | 2        | 99.99   |
         | Customer Two   | SHIPPED   | Phone         | 1        | 429.99  |
         | Customer Three | CANCELLED | Macbook       | 1        | 999.99  |
-
 Scenario: The server is running
     When I visit the "Home Page"
     Then I should see "Order Demo RESTful Service" in the title
