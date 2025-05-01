@@ -19,7 +19,7 @@ spec:
       description: The name of the image to build
       name: IMAGE_NAME
       type: string
-    - default: 'https://cd-pipeline-ayushnaique28-dev.apps.rm2.thpm.p1.openshiftapps.com/'
+    - default: 'https://orders-ayushnaique28-dev.apps.rm2.thpm.p1.openshiftapps.com/'
       description: The root url to orders microservice
       name: BASE_URL
       type: string
