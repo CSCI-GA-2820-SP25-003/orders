@@ -6,7 +6,7 @@ Feature: The order service back-end
 Background:
     Given the following orders
         | customer_name  | status    | product_name  | quantity | price   |
-        | Customer One   | CREATED   | T-Shirt       | 2        | 99.99   |
+        | Customer One   | CREATED   | T-Shirt       | 1        | 99.99   |
         | Customer Two   | SHIPPED   | Phone         | 1        | 429.99  |
         | Customer Three | CANCELLED | Macbook       | 1        | 999.99  |
 
